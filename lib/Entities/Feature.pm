@@ -3,7 +3,7 @@ package Entities::Feature;
 use Moose;
 use namespace::autoclean;
 
-has 'id' => (is => 'ro', isa => 'Int', required => 1);
+has 'id' => (is => 'ro', isa => 'Str', predicate => 'has_id', writer => '_set_id');
 has 'name' => (is => 'ro', isa => 'Str', required => 1);
 has 'description' => (is => 'ro', isa => 'Str');
 

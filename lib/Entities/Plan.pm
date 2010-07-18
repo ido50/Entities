@@ -1,13 +1,17 @@
 package Entities::Plan;
 
 use Moose;
+use Moose::Util::TypeConstraints;
+use MooseX::Types::DateTime qw/DateTime/;
 use namespace::autoclean;
 
-has 'id' => (is => 'ro', isa => 'Int', required => 1);
+has 'id' => (is => 'ro', isa => 'Str', predicate => 'has_id', writer => '_set_id');
 has 'name' => (is => 'rw', isa => 'String', required => 1);
 has 'description' => (is => 'rw', isa => 'String');
 has 'features' => (is => 'rw', isa => 'ArrayRef[Entities::Feature]', weak_ref => 1, required => 1);
 has 'plans' => (is => 'rw', isa => 'ArrayRef[Entities::Plan]', weak_ref => 1, required => 1);
+has 'created' => (is => 'ro', isa => 'DateTime', required => 1);
+has 'modified' => (is => 'ro', isa => 'DateTime', required => 1);
 
 with 'Abilities::Features';
 

@@ -3,8 +3,14 @@ package Entities;
 use Moose;
 use namespace::autoclean;
 use Entities::Backend;
+use Entities::User;
+use Entities::Role;
+use Entities::Action;
+use Entities::Customer;
+use Entities::Plan;
+use Entities::Feature;
 
-has 'backend' => (is => 'ro', isa => 'Entities::Backend', weak_ref => 1, required => 1);
+has 'backend' => (is => 'ro', isa => 'Entities::Backend', required => 1);
 
 # ABSTRACT: User management and authorization for web applications and subscription-based services.
 
@@ -20,18 +26,24 @@ Entities - User management and authorization for web applications and subscripti
 	my $ent = Entities->new(backend => 'MongoDB');
 
 	# create a new role
-	my $role = $ent->add_role(name => 'members');
-	$role->give_action('make_mess')
+	my $role = $ent->new_role(name => 'members');
+	$role->grant_action('make_mess')
 	     ->inherit_from('limited_members');
 
+	# save new role to the backend
+	$ent->save($role);
+
 	# create a new user
-	my $user = $ent->add_user(username => 'someone');
+	my $user = $ent->new_user(username => 'someone');
 	$user->add_email('someone@someplace.com')
 	     ->add_to_role('members');
-	     ->give_action('do_stuff');
+	     ->grant_action('stuff');
+
+	# save new user to the backend
+	$ent->save($user);
 
 	# check user can do stuff
-	if ($user->can_perform('do_stuff')) {
+	if ($user->can_perform('stuff')) {
 		&do_stuff();
 	} else {
 		croak "Listen, you just can't do that. C'mon.";
@@ -124,9 +136,51 @@ role.
 
 =head1 METHODS
 
+=cut
+
+sub new_role {
+	my $self = shift;
+
+	return Entities::Role->new(@_);
+}
+
+sub new_user {
+	my $self = shift;
+
+	return Entities::User->new(@_);
+}
+
+sub new_action {
+	my $self = shift;
+
+	return Entities::Action->new(@_);
+}
+
+sub new_plan {
+	my $self = shift;
+
+	return Entities::Plan->new(@_);
+}
+
+sub new_feature {
+	my $self = shift;
+
+	return Entities::Feature->new(@_);
+}
+
+sub new_customer {
+	my $self = shift;
+
+	return Entities::Customer->new(@_);
+}
+
+sub save {
+	$_[0]->backend->save($_[1]);
+}
+
 =head1 AUTHOR
 
-Ido Perlmuter, C<< <ido at ido50.net> >>
+Ido Perlmuter, C<< <ido at ido50 dot net> >>
 
 =head1 BUGS
 
