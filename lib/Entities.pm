@@ -1,7 +1,10 @@
 package Entities;
 
-use warnings;
-use strict;
+use Moose;
+use namespace::autoclean;
+use Entities::Backend;
+
+has 'backend' => (is => 'ro', isa => 'Entities::Backend', weak_ref => 1, required => 1);
 
 # ABSTRACT: User management and authorization for web applications and subscription-based services.
 
@@ -17,7 +20,7 @@ Entities - User management and authorization for web applications and subscripti
 	my $ent = Entities->new(backend => 'MongoDB');
 
 	# create a new role
-	my $role = $ent->add_rule(name => 'members');
+	my $role = $ent->add_role(name => 'members');
 	$role->give_action('make_mess')
 	     ->inherit_from('limited_members');
 
@@ -36,7 +39,88 @@ Entities - User management and authorization for web applications and subscripti
 
 =head1 DESCRIPTION
 
-This module does shit.
+Entities is a complete system of user management and authorization for
+web applications and subscription-based web services, implementing what
+I call 'ability-based authorization', as defined by L<Abilities> and
+L<Abilities::Features>.
+
+This is a reference implementation, meant to be both extensive enough to
+be used by web applications, and to serve as an example of how to use and
+create ability-based authorization systems.
+
+=head2 ENTITIES?
+
+Ability-based authorization deals with six types of "entities":
+
+=over
+
+=item * Customers (represented by L<Entities::Customer>
+
+A customer is an abstract entity that merely serves to unify the people
+who are actually using your app (see "users"). It can either be a person,
+a company, an organization or whatever. Basically, the customer is the
+"body" that signed up for your service and possibly is paying for it. A
+customer can have 1 or more users.
+
+=item * Users (represented by L<Entities::User>
+
+A user is a person that belongs to a certain company and has received
+access to your app. They are the actual entities that are interacting with
+your application, not their parent entities (i.e. customers). Users have
+the ability to perform actions (see later), probably only within their
+parent entity's scope (see L</"SCOPING">) and maybe to a certain limit
+(see L</"LIMITING">).
+
+=item * Plans (represented by L<Entities::Plan>)
+
+A plan is a group of features (see "features"), with certain limits and
+scoping restrictions, that customers subscribe to. You are probably familiar
+with this concept from web services you use (like GitHub, Google Apps, etc.).
+
+A customer can subscribe to one or more plans (plans do not have to be
+related in any way), so that users of that customer can use the features
+provided with those plans.
+
+=item * Features (represented by L<Entities::Feature>)
+
+A feature is also an abstract entity used to define "something" that customers
+can use on your web serivce. Perhaps "SSL Encryption" is a feature provided
+with some (but not all) of your plans. Or maybe "Opening Blogs" is a feature
+of all your plans, with different limits set on this feature for every plan.
+
+In other words, features are as they're named: the features of your app.
+It's your decision who gets to use them.
+
+=item * Actions (represented by L<Entities::Actions>)
+
+Actions are the core of 'ability-based authorization'. They define the
+actual activities that users can perform inside your app. For example,
+'creating a new blog post' is an action that a user can perform. Another
+example would be 'approving comments'. Maybe even 'creating new users'.
+
+Actions, therefore, are units of "work" you define in your code. Users will
+be able to perform such unit of work only if they are granted with the 'ability'
+to perform the action the defines it, and only if this action is within
+the defined 'scope' and 'limit' of the parent customer. A certain ability
+can be bestowed upon a user either explicitly, or via roles (see below).
+
+=item * Roles (represented by L<Entities::Role>)
+
+Roles might be familiar to you from 'role-based authorization'. Figuratively
+speaking, they are 'masks' that users can wear. A role is nothing but a
+group of actions. When a user is assigned a certain role, they consume
+all the actions defined in that role, and therefore the user is able to
+perform it. You will most likely find yourself creating roles such as
+'admins', 'members', 'guests', etc.
+
+Roles are self-inheriting, i.e. a role can inherit the actions of another
+role.
+
+=back
+
+=head2 SCOPING
+
+=head2 LIMITING
 
 =head1 METHODS
 
@@ -90,4 +174,5 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
+__PACKAGE__->meta->make_immutable;
 1;
