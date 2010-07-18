@@ -2,41 +2,45 @@ package Entities::Role;
 
 use Moose;
 use Moose::Util::TypeConstraints;
-use MooseX::Types::DateTime qw/DateTime/;
+use MooseX::Types::DateTime;
 use namespace::autoclean;
+use Carp;
 
 has 'id' => (is => 'ro', isa => 'Str', predicate => 'has_id', writer => '_set_id');
 has 'name' => (is => 'ro', isa => 'Str', required => 1);
 has 'description' => (is => 'ro', isa => 'Str');
-has 'roles' => (is => 'rw', isa => 'ArrayRef[Entities::Role]', weak_ref => 1, required => 1);
-has 'actions' => (is => 'rw', isa => 'ArrayRef[Entities::Action]', weak_ref => 1, required => 1);
-has 'is_super' => (is => 'ro', isa => 'Bool', required => 1);
-has 'created' => (is => 'ro', isa => 'DateTime', required => 1);
-has 'modified' => (is => 'ro', isa => 'DateTime', required => 1);
+has 'roles' => (is => 'rw', isa => 'ArrayRef[Entities::Role]', weak_ref => 1, default => sub { [] });
+has 'actions' => (is => 'rw', isa => 'ArrayRef[Entities::Action]', weak_ref => 1, default => sub { [] });
+has 'is_super' => (is => 'ro', isa => 'Bool', default => 0);
+has 'created' => (is => 'ro', isa => 'DateTime', default => sub { DateTime->now() });
+has 'modified' => (is => 'ro', isa => 'DateTime');
 
 with 'Abilities';
 
-around qw/roles actions/ => sub {
-	my ($orig, $self) = @_;
+=head2 grant_action
 
-	my $ref = $self->$orig();
-	return ref $ref eq 'ARRAY' ? @$ref : $ref;
-};
+=cut
 
 sub grant_action {
 	my ($self, $action) = @_;
 
-	foreach ($self->action) {
+	foreach (@{$self->action}) {
 		if ($_ eq $action) {
 			carp "Role ".$self->id." already has action ".$action;
 			return $self;
 		}
 	}
 
-	$self->actions([$self->actions, $action]);
+	my @actions = @{$self->actions};
+	push(@actions, $action);
+	$self->actions(\@actions);
 
 	return $self;
 }
+
+=head2 inherit_from
+
+=cut
 
 sub inherit_from {
 	my ($self, $role) = @_;
@@ -48,7 +52,9 @@ sub inherit_from {
 		}
 	}
 
-	$self->roles([$self->roles, $role]);
+	my @roles = @{$self->roles};
+	push(@roles, $role);
+	$self->roles(\@roles);
 
 	return $self;
 }

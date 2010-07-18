@@ -12,6 +12,10 @@ has 'port' => (is => 'ro', isa => 'Int', default => 27017);
 has 'db_name' => (is => 'ro', isa => 'Str', default => 'entities');
 has 'db' => (is => 'rw', isa => 'MongoDB::Database');
 
+=head2 BUILD
+
+=cut
+
 sub BUILD {
 	my $self = shift;
 
@@ -19,11 +23,19 @@ sub BUILD {
 	$self->db($connection->get_database($self->db_name));
 }
 
+=head2 get_user_from_id
+
+=cut
+
 sub get_user_from_id {
 	my ($self, $id) = @_;
 
 	return $self->db->get_collection('users')->find_one({ _id => $id });
 }
+
+=head2 get_user_from_name
+
+=cut
 
 sub get_user_from_name {
 	my ($self, $username) = @_;
@@ -31,11 +43,19 @@ sub get_user_from_name {
 	return $self->db->get_collection('users')->find_one({ username => $username });
 }
 
+=head2 get_role
+
+=cut
+
 sub get_role {
 	my ($self, $name) = @_;
 
 	return $self->db->get_collection('roles')->find_one({ name => $name });
 }
+
+=head2 get_customer
+
+=cut
 
 sub get_customer {
 	my ($self, $name) = @_;
@@ -43,11 +63,19 @@ sub get_customer {
 	return $self->db->get_collection('customers')->find_one({ name => $name });
 }
 
+=head2 get_plan
+
+=cut
+
 sub get_plan {
 	my ($self, $name) = @_;
 
 	return $self->db->get_collection('plans')->find_one({ name => $name });
 }
+
+=head2 get_feature
+
+=cut
 
 sub get_feature {
 	my ($self, $name) = @_;
@@ -55,11 +83,19 @@ sub get_feature {
 	return $self->db->get_collection('features')->find_one({ name => $name });
 }
 
+=head2 get_action
+
+=cut
+
 sub get_action {
 	my ($self, $name) = @_;
 
 	return $self->db->get_collection('actions')->find_one({ name => $name });
 }
+
+=head2 save
+
+=cut
 
 sub save {
 	my ($self, $obj) = @_;
@@ -90,5 +126,5 @@ sub save {
 	return 1;
 }
 
-__PACKAGE__->meta->makeimmutable;
+__PACKAGE__->meta->make_immutable;
 1;

@@ -136,6 +136,8 @@ role.
 
 =head1 METHODS
 
+=head2 new_role()
+
 =cut
 
 sub new_role {
@@ -144,11 +146,19 @@ sub new_role {
 	return Entities::Role->new(@_);
 }
 
+=head2 new_user()
+
+=cut
+
 sub new_user {
 	my $self = shift;
 
 	return Entities::User->new(@_);
 }
+
+=head2 new_action
+
+=cut
 
 sub new_action {
 	my $self = shift;
@@ -156,11 +166,19 @@ sub new_action {
 	return Entities::Action->new(@_);
 }
 
+=head2 new_plan
+
+=cut
+
 sub new_plan {
 	my $self = shift;
 
 	return Entities::Plan->new(@_);
 }
+
+=head2 new_feature
+
+=cut
 
 sub new_feature {
 	my $self = shift;
@@ -168,11 +186,19 @@ sub new_feature {
 	return Entities::Feature->new(@_);
 }
 
+=head2 new_customer
+
+=cut
+
 sub new_customer {
 	my $self = shift;
 
 	return Entities::Customer->new(@_);
 }
+
+=head2 save
+
+=cut
 
 sub save {
 	$_[0]->backend->save($_[1]);
