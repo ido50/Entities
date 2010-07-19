@@ -2,7 +2,7 @@ package Entities;
 
 use Moose;
 use namespace::autoclean;
-use Entities::Backend;
+
 use Entities::User;
 use Entities::Role;
 use Entities::Action;
@@ -10,7 +10,7 @@ use Entities::Customer;
 use Entities::Plan;
 use Entities::Feature;
 
-has 'backend' => (is => 'ro', isa => 'Entities::Backend', required => 1);
+has 'backend' => (is => 'ro', does => 'Entities::Backend', required => 1);
 
 # ABSTRACT: User management and authorization for web applications and subscription-based services.
 
@@ -96,7 +96,7 @@ provided with those plans.
 =item * Features (represented by L<Entities::Feature>)
 
 A feature is also an abstract entity used to define "something" that customers
-can use on your web serivce. Perhaps "SSL Encryption" is a feature provided
+can use on your web service. Perhaps "SSL Encryption" is a feature provided
 with some (but not all) of your plans. Or maybe "Opening Blogs" is a feature
 of all your plans, with different limits set on this feature for every plan.
 
@@ -195,6 +195,18 @@ sub new_customer {
 
 	return Entities::Customer->new(@_);
 }
+
+around qr/^new_.+$/ => sub {
+	my ($orig, $self) = (shift, shift);
+
+	push(@_, parent => $self);
+
+	my $obj = $self->$orig(@_);
+
+	$self->backend->save($obj);
+
+	return $obj;
+};
 
 =head2 save
 

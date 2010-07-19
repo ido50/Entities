@@ -1,7 +1,8 @@
 package Entities::Backend;
 
-use Moose;
+use Moose::Role;
 use namespace::autoclean;
 
-__PACKAGE__->meta->make_immutable;
+requires 'save';
+
 1;

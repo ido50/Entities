@@ -5,7 +5,7 @@ use namespace::autoclean;
 use MongoDB;
 use Carp;
 
-extends 'Entities::Backend';
+with 'Entities::Backend';
 
 has 'host' => (is => 'ro', isa => 'Str', default => 'localhost');
 has 'port' => (is => 'ro', isa => 'Int', default => 27017);

@@ -4,7 +4,7 @@ use Moose;
 use namespace::autoclean;
 use Carp;
 
-extends 'Entities::Backend';
+with 'Entities::Backend';
 
 has 'roles' => (is => 'rw', isa => 'ArrayRef[Entities::Role]');
 has 'users' => (is => 'rw', isa => 'ArrayRef[Entities::User]');
@@ -13,6 +13,17 @@ has 'plans' => (is => 'rw', isa => 'ArrayRef[Entities::Plan]');
 has 'customers' => (is => 'rw', isa => 'ArrayRef[Entities::Customer]');
 has 'features' => (is => 'rw', isa => 'ArrayRef[Entities::Feature]');
 
+around qw/roles actions users plans customers features/ => sub {
+	my ($orig, $self) = (shift, shift);
+
+	if (scalar @_) {
+		return $self->$orig(@_);
+	} else {
+		my $ret = $self->$orig || [];
+		return wantarray ? @$ret : $ret;
+	}
+};
+
 =head2 get_user_from_id
 
 =cut
@@ -20,7 +31,7 @@ has 'features' => (is => 'rw', isa => 'ArrayRef[Entities::Feature]');
 sub get_user_from_id {
 	my ($self, $id) = @_;
 
-	foreach (@{$self->users}) {
+	foreach ($self->users) {
 		return $_ if $_->id == $id;
 	}
 
@@ -34,7 +45,7 @@ sub get_user_from_id {
 sub get_user_from_name {
 	my ($self, $username) = @_;
 
-	foreach (@{$self->users}) {
+	foreach ($self->users) {
 		return $_ if $_->username eq $username;
 	}
 
@@ -48,7 +59,7 @@ sub get_user_from_name {
 sub get_role {
 	my ($self, $name) = @_;
 
-	foreach (@{$self->roles}) {
+	foreach ($self->roles) {
 		return $_ if $_->name eq $name;
 	}
 
@@ -62,7 +73,7 @@ sub get_role {
 sub get_customer {
 	my ($self, $name) = @_;
 
-	foreach (@{$self->customers}) {
+	foreach ($self->customers) {
 		return $_ if $_->name eq $name;
 	}
 
@@ -76,7 +87,7 @@ sub get_customer {
 sub get_plan {
 	my ($self, $name) = @_;
 
-	foreach (@{$self->plans}) {
+	foreach ($self->plans) {
 		return $_ if $_->name eq $name;
 	}
 
@@ -90,7 +101,7 @@ sub get_plan {
 sub get_feature {
 	my ($self, $name) = @_;
 
-	foreach (@{$self->features}) {
+	foreach ($self->features) {
 		return $_ if $_->name eq $name;
 	}
 
@@ -104,7 +115,7 @@ sub get_feature {
 sub get_action {
 	my ($self, $name) = @_;
 
-	foreach (@{$self->actions}) {
+	foreach ($self->actions) {
 		return $_ if $_->name eq $name;
 	}
 
@@ -130,10 +141,10 @@ sub save {
 		croak "Can't find out the type of object received, it is not a valid Entity"
 			if $coll eq 'unknown';
 
-		my $array = $self->$coll;
-		$obj->_set_id(scalar @$array + 1);
-		push(@$array, $obj);
-		$self->$coll($array);
+		my @array = $self->$coll;
+		$obj->_set_id(scalar @array + 1);
+		push(@array, $obj);
+		$self->$coll(\@array);
 	}
 
 	return 1;

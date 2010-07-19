@@ -46,15 +46,22 @@ my $act_two = $ent->new_action(name => 'do_more_stuff');
 ok($act_two, 'Created the do_more_stuff action');
 meta_ok($act_two, 'do_more_stuff has meta');
 
+$role->grant_action($act_one);
+
 # add some stuff to this user
 $user->add_email('someone@company.com')
      ->add_email('someone@gmail.com')
-     #->add_to_role('Test Role')
-     #->grant_action('do_stuff')
+     ->add_to_role('Test Role')
+     ->grant_action('do_more_stuff')
      ->set_passphrase('new_s3cr3t');
 
 is($user->has_email('someone@company.com'), 1, 'First email was indeed added');
 is($user->has_email('someone@gmail.com'), 1, 'Second email was indeed added');
 is($user->has_email('someoneelse@gmail.com'), undef, 'Unknown email indeed does not exist');
+is($user->can_perform('do_stuff'), 1, 'User can do_stuff');
+is($user->can_perform('do_more_stuff'), 1, 'User can do_more_stuff');
+is($user->can_perform('nothing'), undef, 'User can\'t perform non-existant action');
+is($user->inherits_from_role('Test Role'), 1, 'User inherits from Test Role');
+is($user->inherits_from_role('Non-Existant Role'), undef, 'User doesn\'t inherit from fictional role');
 
 done_testing();
