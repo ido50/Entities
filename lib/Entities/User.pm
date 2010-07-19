@@ -57,7 +57,7 @@ sub add_email {
 	if ($self->has_email($email)) {
 		carp "User ".$self->id." already has email $email";
 	} else {
-		my @emails = @{$self->emails};
+		my @emails = $self->emails;
 		push(@emails, $email);
 		$self->emails(\@emails);
 	}
@@ -74,8 +74,7 @@ sub add_to_role {
 
 	croak "You must provide a role name." unless $role_name;
 
-	foreach ($self->roles) {
-		next unless $_->name eq $role_name;
+	if ($self->belongs_to($role_name)) {
 		carp "User ".$self->id." already belongs to role ".$role_name;
 		return $self;
 	}
@@ -101,8 +100,7 @@ sub grant_action {
 
 	croak "You must provide an action name." unless $action_name;
 
-	foreach ($self->actions) {
-		next unless $_->name eq $action_name;
+	if ($self->has_direct_action($action_name)) {
 		carp "User ".$self->id." already has action ".$action_name;
 		return $self;
 	}
@@ -150,6 +148,75 @@ sub has_email {
 	}
 
 	return;
+}
+
+=head2 has_direct_action
+
+=cut
+
+sub has_direct_action {
+	my ($self, $action_name) = @_;
+
+	unless ($action_name) {
+		carp "You must provide an action name.";
+		return;
+	}
+
+	foreach ($self->actions) {
+		return 1 if $_->name eq $action_name;
+	}
+
+	return;
+}
+
+=head2 drop_role
+
+=cut
+
+sub drop_role {
+	my ($self, $role_name) = @_;
+
+	croak "You must provide a role name." unless $role_name;
+
+	unless ($self->belongs_to($role_name)) {
+		carp "Customer ".$self->name." doesn't have role $role_name.";
+		return $self;
+	}
+
+	my @roles;
+	foreach ($self->roles) {
+		next if $_->name eq $role_name;
+		push(@roles, $_);
+	}
+
+	$self->roles(\@roles);
+
+	return $self;
+}
+
+=head2 drop_action
+
+=cut
+
+sub drop_action {
+	my ($self, $action_name) = @_;
+
+	croak "You must provide an action name." unless $action_name;
+
+	unless ($self->has_direct_action($action_name)) {
+		carp "Customer ".$self->name." doesn't have action $action_name.";
+		return $self;
+	}
+
+	my @actions;
+	foreach ($self->actions) {
+		next if $_->name eq $action_name;
+		push(@actions, $_);
+	}
+
+	$self->actions(\@actions);
+
+	return $self;
 }
 
 __PACKAGE__->meta->make_immutable;
