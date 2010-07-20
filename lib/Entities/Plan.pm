@@ -74,11 +74,11 @@ Changes the description of the object to the provided value.
 
 has 'description' => (is => 'ro', isa => 'Str', writer => 'set_description');
 
-=head2 features( [\@features] )
+=head2 _features( [\@features] )
 
-In scalar context, returns an array-ref of all feature objects this plan
+In scalar context, returns an array-ref of all feature names this plan
 directly has. In list context returns an array. If an array-ref of feature
-objects is provided, it replaces the current list.
+names is provided, it replaces the current list.
 
 =head2 has_features()
 
@@ -86,12 +86,29 @@ Returns a true value if the plan has been assigned any features.
 
 =cut
 
-has 'features' => (is => 'rw', isa => 'ArrayRef[Entities::Feature]', predicate => 'has_features');
+has '_features' => (is => 'rw', isa => 'ArrayRef[Str]', predicate => 'has_features');
 
-=head2 plans( [\@plans] )
+=head2 features()
 
-In scalar context, returns an array-ref of plan objects this plan inherits
-from. In list context returns an array. If an array-ref of plan objects
+Returns an array of all feature objects this plan has.
+
+=cut
+
+sub features {
+	my $self = shift;
+
+	my @features;
+	foreach ($self->_features) {
+		push(@features, $self->parent->get_feature($_));
+	}
+
+	return @features;
+}
+
+=head2 _plans( [\@plans] )
+
+In scalar context, returns an array-ref of plan names this plan inherits
+from. In list context returns an array. If an array-ref of plan names
 is provided, it will replace the current list.
 
 =head2 has_plans()
@@ -100,7 +117,24 @@ Returns a true value if the plan object inherits from any other plan.
 
 =cut
 
-has 'plans' => (is => 'rw', isa => 'ArrayRef[Entities::Plan]', predicate => 'has_plans');
+has '_plans' => (is => 'rw', isa => 'ArrayRef[Str]', predicate => 'has_plans');
+
+=head2 plans()
+
+Returns an array of all plan objects this plan inherits from.
+
+=cut
+
+sub plans {
+	my $self = shift;
+
+	my @plans;
+	foreach ($self->_plans) {
+		push(@plans, $self->parent->get_plan($_));
+	}
+
+	return @plans;
+}
 
 =head2 created()
 
@@ -153,9 +187,9 @@ sub add_feature {
 	croak "feature $feature_name does not exist." unless $feature;
 
 	# add this feature
-	my @features = $self->features;
-	push(@features, $feature);
-	$self->features(\@features);
+	my @features = $self->_features;
+	push(@features, $feature_name);
+	$self->_features(\@features);
 
 	return $self;
 }
@@ -185,11 +219,11 @@ sub drop_feature {
 
 	# remove the feature
 	my @features;
-	foreach ($self->features) {
-		next if $_->name eq $feature_name;
+	foreach ($self->_features) {
+		next if $_ eq $feature_name;
 		push(@features, $_);
 	}
-	$self->features(\@features);
+	$self->_features(\@features);
 
 	return $self;
 }
@@ -210,8 +244,8 @@ sub has_direct_feature {
 	}
 
 	# find the feature
-	foreach ($self->features) {
-		return 1 if $_->name eq $feature_name;
+	foreach ($self->_features) {
+		return 1 if $_ eq $feature_name;
 	}
 
 	return;
@@ -242,9 +276,9 @@ sub take_from_plan {
 	croak "plan $plan_name does not exist." unless $plan;
 
 	# add the plan
-	my @plans = $self->plans;
-	push(@plans, $plan);
-	$self->plans(\@plans);
+	my @plans = $self->_plans;
+	push(@plans, $plan_name);
+	$self->_plans(\@plans);
 
 	return $self;
 }
@@ -272,11 +306,11 @@ sub dont_take_from_plan {
 
 	# remove the plan
 	my @plans;
-	foreach ($self->plans) {
-		next if $_->name eq $plan_name;
+	foreach ($self->_plans) {
+		next if $_ eq $plan_name;
 		push(@plans, $_);
 	}
-	$self->plans(\@plans);
+	$self->_plans(\@plans);
 
 	return $self;
 }
@@ -300,15 +334,15 @@ these methods.
 The following list documents any method modifications performed through
 the magic of L<Moose>.
 
-=head2 around qw/plans features/
+=head2 around qw/_plans _features/
 
-If the C<plans()> and C<features()> methods are called with no arguments
+If the C<_plans()> and C<_features()> methods are called with no arguments
 and in list context - will automatically dereference the array-ref into
 arrays.
 
 =cut
 
-around qw/plans features/ => sub {
+around qw/_plans _features/ => sub {
 	my ($orig, $self) = (shift, shift);
 
 	if (scalar @_) {

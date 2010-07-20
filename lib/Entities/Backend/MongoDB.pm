@@ -103,9 +103,9 @@ sub to_hash {
 			is_super => $obj->is_super ? 1 : 0,
 			created => $obj->created->datetime,
 			modified => $obj->modified->datetime,
-			actions => [map($_->name, $obj->actions)],
-			roles => [map($_->name, $obj->roles)],
-			emails => [map($_, $obj->emails)],
+			actions => [$obj->_actions],
+			roles => [$obj->_roles],
+			emails => [$obj->emails],
 			customer => $obj->customer ? $obj->customer->name : undef,
 		};
 	} elsif ($obj->isa('Entities::Role')) {
@@ -115,8 +115,8 @@ sub to_hash {
 			is_super => $obj->is_super ? 1 : 0,
 			created => $obj->created->datetime,
 			modified => $obj->modified->datetime,
-			actions => [map($_->name, $obj->actions)],
-			roles => [map($_->name, $obj->roles)],
+			actions => [$obj->_actions],
+			roles => [$obj->_roles],
 		};
 	} elsif ($obj->isa('Entities::Action') || $obj->isa('Entities::Feature')) {
 		return {
@@ -131,8 +131,8 @@ sub to_hash {
 			email_address => $obj->email_address,
 			created => $obj->created->datetime,
 			modified => $obj->modified->datetime,
-			features => [map($_->name, $obj->features)],
-			plans => [map($_->name, $obj->plans)],
+			features => [$obj->_features],
+			plans => [$obj->_plans],
 		};
 	} elsif ($obj->isa('Entities::Plan')) {
 		return {
@@ -140,8 +140,8 @@ sub to_hash {
 			description => $obj->description,
 			created => $obj->created->datetime,
 			modified => $obj->modified->datetime,
-			features => [map($_->name, $obj->features)],
-			plans => [map($_->name, $obj->plans)],
+			features => [$obj->_features],
+			plans => [$obj->_plans],
 		};
 	} else {
 		croak "Received an object that doesn't belong to the Entities family.";
@@ -165,10 +165,7 @@ sub get_user_from_id {
 	return unless $user;
 
 	# turn this into an object
-	my @roles = map { $self->get_role($_) } @{$user->{roles}};
-	my @actions = map { $self->get_action($_) } @{$user->{actions}};
-
-	return Entities::User->new(id => $user->{_id}, username => $user->{username}, realname => $user->{realname}, customer => $user->{customer} ? $self->get_customer($user->{customer}) : undef, passphrase => $user->{passphrase}, is_super => $user->{is_super}, roles => \@roles, actions => \@actions, emails => $user->{emails}, created => DateTime::Format::ISO8601->parse_datetime($user->{created}), modified => DateTime::Format::ISO8601->parse_datetime($user->{modified}), parent => $self);
+	return Entities::User->new(id => $user->{_id}, username => $user->{username}, realname => $user->{realname}, customer => $user->{customer} ? $self->get_customer($user->{customer}) : undef, passphrase => $user->{passphrase}, is_super => $user->{is_super}, _roles => $user->{roles}, _actions => $user->{actions}, emails => $user->{emails}, created => DateTime::Format::ISO8601->parse_datetime($user->{created}), modified => DateTime::Format::ISO8601->parse_datetime($user->{modified}), parent => $self);
 }
 
 =head2 get_user_from_name( $username )
@@ -182,10 +179,7 @@ sub get_user_from_name {
 	return unless $user;
 
 	# turn this into an object
-	my @roles = map { $self->get_role($_) } @{$user->{roles}};
-	my @actions = map { $self->get_action($_) } @{$user->{actions}};
-
-	return Entities::User->new(id => $user->{_id}, username => $user->{username}, realname => $user->{realname}, customer => $user->{customer} ? $self->get_customer($user->{customer}) : undef, passphrase => $user->{passphrase}, is_super => $user->{is_super}, roles => \@roles, actions => \@actions, emails => $user->{emails}, created => DateTime::Format::ISO8601->parse_datetime($user->{created}), modified => DateTime::Format::ISO8601->parse_datetime($user->{modified}), parent => $self);
+	return Entities::User->new(id => $user->{_id}, username => $user->{username}, realname => $user->{realname}, customer => $user->{customer} ? $self->get_customer($user->{customer}) : undef, passphrase => $user->{passphrase}, is_super => $user->{is_super}, _roles => $user->{roles}, _actions => $user->{actions}, emails => $user->{emails}, created => DateTime::Format::ISO8601->parse_datetime($user->{created}), modified => DateTime::Format::ISO8601->parse_datetime($user->{modified}), parent => $self);
 }
 
 =head2 get_role( $role_name )
@@ -199,12 +193,9 @@ sub get_role {
 	return unless $role;
 	
 	# turn this into an object
-	my @roles = map { $self->get_role($_) } @{$role->{roles}};
-	my @actions = map { $self->get_action($_) } @{$role->{actions}};
-
 	$role->{description} ||= '';
 
-	return Entities::Role->new(id => $role->{_id}, name => $role->{name}, description => $role->{description}, is_super => $role->{is_super}, roles => \@roles, actions => \@actions, created => DateTime::Format::ISO8601->parse_datetime($role->{created}), modified => DateTime::Format::ISO8601->parse_datetime($role->{modified}), parent => $self);
+	return Entities::Role->new(id => $role->{_id}, name => $role->{name}, description => $role->{description}, is_super => $role->{is_super}, _roles => $role->{roles}, _actions => $role->{actions}, created => DateTime::Format::ISO8601->parse_datetime($role->{created}), modified => DateTime::Format::ISO8601->parse_datetime($role->{modified}), parent => $self);
 }
 
 =head2 get_customer( $customer_name )
@@ -218,10 +209,7 @@ sub get_customer {
 	return unless $customer;
 	
 	# turn this into an object
-	my @features = map { $self->get_feature($_) } @{$customer->{features}};
-	my @plans = map { $self->get_plan($_) } @{$customer->{plans}};
-
-	return Entities::Customer->new(id => $customer->{_id}, name => $customer->{name}, email_address => $customer->{email_address}, features => \@features, plans => \@plans, created => DateTime::Format::ISO8601->parse_datetime($customer->{created}), modified => DateTime::Format::ISO8601->parse_datetime($customer->{modified}), parent => $self);
+	return Entities::Customer->new(id => $customer->{_id}, name => $customer->{name}, email_address => $customer->{email_address}, _features => $customer->{features}, _plans => $customer->{plans}, created => DateTime::Format::ISO8601->parse_datetime($customer->{created}), modified => DateTime::Format::ISO8601->parse_datetime($customer->{modified}), parent => $self);
 }
 
 =head2 get_plan( $plan_name )
@@ -235,12 +223,9 @@ sub get_plan {
 	return unless $plan;
 	
 	# turn this into an object
-	my @features = map { $self->get_feature($_) } @{$plan->{features}};
-	my @plans = map { $self->get_plan($_) } @{$plan->{plans}};
-
 	$plan->{description} ||= '';
 
-	return Entities::Plan->new(id => $plan->{_id}, name => $plan->{name}, description => $plan->{description}, features => \@features, plans => \@plans, created => DateTime::Format::ISO8601->parse_datetime($plan->{created}), modified => DateTime::Format::ISO8601->parse_datetime($plan->{modified}), parent => $self);
+	return Entities::Plan->new(id => $plan->{_id}, name => $plan->{name}, description => $plan->{description}, _features => $plan->{features}, _plans => $plan->{plans}, created => DateTime::Format::ISO8601->parse_datetime($plan->{created}), modified => DateTime::Format::ISO8601->parse_datetime($plan->{modified}), parent => $self);
 }
 
 =head2 get_feature( $feature_name )

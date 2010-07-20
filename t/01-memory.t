@@ -81,9 +81,9 @@ $plan2->add_feature('backups')
       ->take_from_plan('fooplan');
 $customer->add_plan('fooplan');
 
-is($role1->has_direct_action('do_stuff'), 1, 'Role 1 explicitely granted to do_stuff');
-is($role1->has_direct_action('destroy_stuff'), undef, 'Role 1 wasn\'t granted to destroy_stuff');
-is($role2->can_perform('destroy_stuff'), 1, 'Role 2 can destroy_stuff');
+is($role1->has_direct_action('do_stuff'), 1, 'foorole explicitely granted to do_stuff');
+is($role1->has_direct_action('destroy_stuff'), undef, 'foorole wasn\'t granted to destroy_stuff');
+is($role2->can_perform('destroy_stuff'), 1, 'barrole can destroy_stuff');
 is($user->passphrase, md5_hex('s3cr3t'), 'User\'s passphrase is alright');
 is($user->has_email('someone@company.com'), 1, 'First email was indeed added');
 is($user->has_email('someone@gmail.com'), 1, 'Second email was indeed added');

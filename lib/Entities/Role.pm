@@ -76,11 +76,11 @@ Changes the description text of the object to the provided text.
 
 has 'description' => (is => 'ro', isa => 'Str', writer => 'set_description');
 
-=head2 roles( [\@roles] )
+=head2 _roles( [\@roles] )
 
-In scalar context, returns an array-ref of all role objects this role
+In scalar context, returns an array-ref of all role names this role
 inherits from. In list context returns an array. If an array-ref of
-role objects is provided, it will replace the current list.
+role names is provided, it will replace the current list.
 
 =head2 has_roles()
 
@@ -88,13 +88,30 @@ Returns a true value if the role inherits from any other roles.
 
 =cut
 
-has 'roles' => (is => 'rw', isa => 'ArrayRef[Entities::Role]', predicate => 'has_roles');
+has '_roles' => (is => 'rw', isa => 'ArrayRef[Str]', predicate => 'has_roles');
 
-=head2 actions( [\@actions] )
+=head2 roles()
 
-In scalar context, returns an array-ref of all action objects this role
+Returns an array of all role objects this role inherits from.
+
+=cut
+
+sub roles {
+	my $self = shift;
+
+	my @roles;
+	foreach ($self->_roles) {
+		push(@roles, $self->parent->get_role($_));
+	}
+
+	return @roles;
+}
+
+=head2 _actions( [\@actions] )
+
+In scalar context, returns an array-ref of all action names this role
 has. In list context returns an array. If an array-ref of
-action objects is provided, it will replace the current list.
+action names is provided, it will replace the current list.
 
 =head2 has_actions()
 
@@ -102,7 +119,24 @@ Returns a true value if the role has been granted any actions.
 
 =cut
 
-has 'actions' => (is => 'rw', isa => 'ArrayRef[Entities::Action]', predicate => 'has_actions');
+has '_actions' => (is => 'rw', isa => 'ArrayRef[Str]', predicate => 'has_actions');
+
+=head2 actions()
+
+Returns an array of all action objects this role has been granted.
+
+=cut
+
+sub actions {
+	my $self = shift;
+
+	my @actions;
+	foreach ($self->_actions) {
+		push(@actions, $self->parent->get_action($_));
+	}
+
+	return @actions;
+}
 
 =head2 is_super()
 
@@ -155,8 +189,8 @@ sub has_direct_action {
 		return;
 	}
 
-	foreach ($self->actions) {
-		return 1 if $_->name eq $action_name;
+	foreach ($self->_actions) {
+		return 1 if $_ eq $action_name;
 	}
 
 	return;
@@ -187,9 +221,9 @@ sub grant_action {
 	croak "Action $action_name does not exist." unless $action;
 
 	# add this action
-	my @actions = $self->actions;
-	push(@actions, $action);
-	$self->actions(\@actions);
+	my @actions = $self->_actions;
+	push(@actions, $action_name);
+	$self->_actions(\@actions);
 
 	return $self;
 }
@@ -218,11 +252,11 @@ sub drop_action {
 
 	# remove the action
 	my @actions;
-	foreach ($self->actions) {
-		next if $_->name eq $action_name;
+	foreach ($self->_actions) {
+		next if $_ eq $action_name;
 		push(@actions, $_);
 	}
-	$self->actions(\@actions);
+	$self->_actions(\@actions);
 
 	return $self;
 }
@@ -253,9 +287,9 @@ sub inherit_from_role {
 	croak "Role $role_name does not exist." unless $role;
 
 	# add this role
-	my @roles = $self->roles;
-	push(@roles, $role);
-	$self->roles(\@roles);
+	my @roles = $self->_roles;
+	push(@roles, $role_name);
+	$self->_roles(\@roles);
 
 	return $self;
 }
@@ -281,11 +315,11 @@ sub dont_inherit_from_role {
 
 	# remove the role
 	my @roles;
-	foreach ($self->roles) {
-		next if $_->name eq $role_name;
+	foreach ($self->_roles) {
+		next if $_ eq $role_name;
 		push(@roles, $_);
 	}
-	$self->roles(\@roles);
+	$self->_roles(\@roles);
 
 	return $self;
 }
@@ -309,15 +343,15 @@ these methods.
 The following list documents any method modifications performed through
 the magic of L<Moose>.
 
-=head2 around qw/roles actions/
+=head2 around qw/_roles _actions/
 
-If the C<roles()> and C<actions()> methods are called with no arguments
+If the C<_roles()> and C<_actions()> methods are called with no arguments
 and in list context - will automatically dereference the array-ref into
 arrays.
 
 =cut
 
-around qw/roles actions/ => sub {
+around qw/_roles _actions/ => sub {
 	my ($orig, $self) = (shift, shift);
 
 	if (scalar @_) {

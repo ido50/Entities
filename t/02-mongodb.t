@@ -6,6 +6,7 @@ use Test::More tests => 76;
 use Test::Moose;
 use Entities;
 use Digest::MD5 qw/md5_hex/;
+use Carp;
 
 eval "use Entities::Backend::MongoDB";
 plan skip_all => "MongoDB and Entities::Backend::MongoDB required for testing MongoDB backend." if $@;
@@ -88,9 +89,9 @@ SKIP: {
 	      ->take_from_plan('fooplan');
 	$customer->add_plan('fooplan');
 
-	is($role1->has_direct_action('do_stuff'), 1, 'Role 1 explicitely granted to do_stuff');
-	is($role1->has_direct_action('destroy_stuff'), undef, 'Role 1 wasn\'t granted to destroy_stuff');
-	is($role2->can_perform('destroy_stuff'), 1, 'Role 2 can destroy_stuff');
+	is($role1->has_direct_action('do_stuff'), 1, 'foorole explicitely granted to do_stuff');
+	is($role1->has_direct_action('destroy_stuff'), undef, 'foorole wasn\'t granted to destroy_stuff');
+	is($role2->can_perform('destroy_stuff'), 1, 'barrole can destroy_stuff');
 	is($user->passphrase, md5_hex('s3cr3t'), 'User\'s passphrase is alright');
 	is($user->has_email('someone@company.com'), 1, 'First email was indeed added');
 	is($user->has_email('someone@gmail.com'), 1, 'Second email was indeed added');
@@ -160,6 +161,9 @@ SKIP: {
 	is($plan1->has_feature('backups'), undef, 'fooplan no longer has backups feature');
 	is($plan2->inherits_from_plan('fooplan'), undef, 'barplan no longer inherits from fooplan');
 	is($customer->has_direct_feature('ssh'), undef, 'customer no longer has explicit ssh feature');
+
+	# drop the database
+	$bac->db->drop;
 }
 
 done_testing();

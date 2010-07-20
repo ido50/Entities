@@ -81,11 +81,11 @@ Changes the email address of the customer to the provided value.
 
 has 'email_address' => (is => 'ro', isa => EmailAddress, required => 1, writer => 'set_email_address');
 
-=head2 plans( [\@plans] )
+=head2 _plans( [\@plans] )
 
-In scalar context, returns an array-ref of all plan objects that customer
+In scalar context, returns an array-ref of all plan names that customer
 is subscribed to. In list context, returns an array. If an array-ref of
-plan objects is provided, it will replace the current list of plans of the
+plan names is provided, it will replace the current list of plans of the
 customer.
 
 =head2 has_plans()
@@ -94,13 +94,30 @@ Returns a true value if the customer is subscribed to any plan.
 
 =cut
 
-has 'plans' => (is => 'rw', isa => 'ArrayRef[Entities::Plan]', predicate => 'has_plans');
+has '_plans' => (is => 'rw', isa => 'ArrayRef[Str]', predicate => 'has_plans');
 
-=head2 features( [\@features] )
+=head2 plans()
 
-In scalar context, returns an array-ref of all feature objects that have
+Returns an array of all plan objects this customer is subscribed to.
+
+=cut
+
+sub plans {
+	my $self = shift;
+
+	my @plans;
+	foreach ($self->_plans) {
+		push(@plans, $self->parent->get_plan($_));
+	}
+
+	return @plans;
+}
+
+=head2 _features( [\@features] )
+
+In scalar context, returns an array-ref of all feature names that have
 been provided for the customer (directly! not through plans). In list context
-returns an array. If an array-ref of feature objects is provided, it will
+returns an array. If an array-ref of feature names is provided, it will
 replace the current list of features the customer owns.
 
 =head2 has_features()
@@ -110,7 +127,24 @@ directly.
 
 =cut
 
-has 'features' => (is => 'rw', isa => 'ArrayRef[Entities::Feature]', predicate => 'has_features');
+has '_features' => (is => 'rw', isa => 'ArrayRef[Str]', predicate => 'has_features');
+
+=head2 features()
+
+Returns an array of all feature objects this customer has.
+
+=cut
+
+sub features {
+	my $self = shift;
+
+	my @features;
+	foreach ($self->_features) {
+		push(@features, $self->parent->get_feature($_));
+	}
+
+	return @features;
+}
 
 =head2 created()
 
@@ -165,9 +199,9 @@ sub add_plan {
 	croak "plan $plan_name does not exist." unless $plan;
 
 	# add the customer to the plan
-	my @plans = $self->plans;
-	push(@plans, $plan);
-	$self->plans(\@plans);
+	my @plans = $self->_plans;
+	push(@plans, $plan_name);
+	$self->_plans(\@plans);
 
 	return $self;
 }
@@ -193,11 +227,11 @@ sub drop_plan {
 
 	# remove the plan
 	my @plans;
-	foreach ($self->plans) {
-		next if $_->name eq $plan_name;
+	foreach ($self->_plans) {
+		next if $_ eq $plan_name;
 		push(@plans, $_);
 	}
-	$self->plans(\@plans);
+	$self->_plans(\@plans);
 
 	return $self;
 }
@@ -226,9 +260,9 @@ sub add_feature {
 	croak "Feature $feature_name does not exist." unless $feature;
 
 	# add the feature to the customer
-	my @features = $self->features;
-	push(@features, $feature);
-	$self->features(\@features);
+	my @features = $self->_features;
+	push(@features, $feature_name);
+	$self->_features(\@features);
 
 	return $self;
 }
@@ -258,11 +292,11 @@ sub drop_feature {
 
 	# remove the feature
 	my @features;
-	foreach ($self->features) {
-		next if $_->name eq $feature_name;
+	foreach ($self->_features) {
+		next if $_ eq $feature_name;
 		push(@features, $_);
 	}
-	$self->features(\@features);
+	$self->_features(\@features);
 
 	return $self;
 }
@@ -283,8 +317,8 @@ sub has_direct_feature {
 	}
 
 	# find the feature
-	foreach ($self->features) {
-		return 1 if $_->name eq $feature_name;
+	foreach ($self->_features) {
+		return 1 if $_ eq $feature_name;
 	}
 
 	return;
@@ -311,13 +345,13 @@ the magic of L<Moose>.
 
 =head2 around qw/plans features/
 
-If the C<plans()> and C<features()> methods are called with no arguments
+If the C<_plans()> and C<_features()> methods are called with no arguments
 and in list context - will automatically dereference the array-ref into
 arrays.
 
 =cut
 
-around qw/plans features/ => sub {
+around qw/_plans _features/ => sub {
 	my ($orig, $self) = (shift, shift);
 
 	if (scalar @_) {
