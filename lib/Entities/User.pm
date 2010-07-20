@@ -62,23 +62,29 @@ internally.
 
 has 'id' => (is => 'ro', isa => 'Str', predicate => 'has_id', writer => '_set_id');
 
-=head2 username( [$new_name] )
+=head2 username()
 
-Returns the username of this user. If a new username is provided, it will
-replace the current one.
+Returns the username of this user.
 
-=cut
+=head2 set_username( $name )
 
-has 'username' => (is => 'rw', isa => 'Str', required => 1);
-
-=head2 realname( [$new_name] )
-
-Returns the real name of the user (i.e. person). If a new name is provided,
-it will replace the current one.
+Changes the username of the user to the provided name.
 
 =cut
 
-has 'realname' => (is => 'rw', isa => 'Str');
+has 'username' => (is => 'ro', isa => 'Str', required => 1, writer => 'set_username');
+
+=head2 realname()
+
+Returns the real name of the user (i.e. person).
+
+=head2 set_realname( $name )
+
+Changes the real name of the user to the provided name.
+
+=cut
+
+has 'realname' => (is => 'ro', isa => 'Str', writer => 'set_realname');
 
 =head2 passphrase()
 
@@ -183,7 +189,7 @@ If a DateTime object is provided, it is set as the new modified value.
 
 =cut
 
-has 'modified' => (is => 'ro', isa => 'DateTime');
+has 'modified' => (is => 'rw', isa => 'DateTime');
 
 =head2 parent()
 
@@ -470,6 +476,21 @@ around BUILDARGS => sub {
 	}
 
 	return $class->$orig(%params);
+};
+
+=head2 after anything_that_changes_object
+
+Automatically saves the object to the backend after any method that changed
+it was executed. Also updates the 'modified' attribute with the current time
+before saving. Note, however, that the C<roles()>, C<action()> and
+C<emails()> methods are not here, since they are only meant to be used
+for writing internally.
+
+=cut
+
+after qw/set_realname set_username set_passphrase add_to_role drop_role grant_action drop_action add_email drop_email/ => sub {
+	$_[0]->modified(DateTime->now);
+	$_[0]->parent->backend->save($_[0]);
 };
 
 =head1 SEE ALSO

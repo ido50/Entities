@@ -64,14 +64,17 @@ Returns the name of the role.
 
 has 'name' => (is => 'ro', isa => 'Str', required => 1);
 
-=head2 description( [$new_description] )
+=head2 description()
 
-Returns the description text of this role. If a new description is
-provided, it is set as the role's description text.
+Returns the description text of this role.
+
+=head2 set_description( $desc )
+
+Changes the description text of the object to the provided text.
 
 =cut
 
-has 'description' => (is => 'rw', isa => 'Str');
+has 'description' => (is => 'ro', isa => 'Str', writer => 'set_description');
 
 =head2 roles( [\@roles] )
 
@@ -323,6 +326,20 @@ around qw/roles actions/ => sub {
 		my $ret = $self->$orig || [];
 		return wantarray ? @$ret : $ret;
 	}
+};
+
+=head2 after anything_that_changes_object
+
+Automatically saves the object to the backend after any method that changed
+it was executed. Also updates the 'modified' attribute with the current time
+before saving. Note, however, that the C<roles()> and C<action()> methods
+are not here, since they are only meant to be used for writing internally.
+
+=cut
+
+after qw/set_description grant_action drop_action inherit_from_role dont_inherit_from_role/ => sub {
+	$_[0]->modified(DateTime->now);
+	$_[0]->parent->backend->save($_[0]);
 };
 
 =head1 SEE ALSO

@@ -62,14 +62,17 @@ Returns the name of the plan.
 
 has 'name' => (is => 'ro', isa => 'Str', required => 1);
 
-=head2 description( [$new_description] )
+=head2 description()
 
-Returns the description text of this plan. If a new description is
-provided, it is set as the plan's description text.
+Returns the description text of this plan.
+
+=head2 set_description( $desc )
+
+Changes the description of the object to the provided value.
 
 =cut
 
-has 'description' => (is => 'rw', isa => 'Str');
+has 'description' => (is => 'ro', isa => 'Str', writer => 'set_description');
 
 =head2 features( [\@features] )
 
@@ -314,6 +317,20 @@ around qw/plans features/ => sub {
 		my $ret = $self->$orig || [];
 		return wantarray ? @$ret : $ret;
 	}
+};
+
+=head2 after anything_that_changes_object
+
+Automatically saves the object to the backend after any method that changed
+it was executed. Also updates the 'modified' attribute with the current time
+before saving. Note, however, that the C<plans()> and C<features()> methods
+are not here, since they are only meant to be used for writing internally.
+
+=cut
+
+after qw/set_description add_feature drop_feature take_from_plan dont_take_from_plan/ => sub {
+	$_[0]->modified(DateTime->now);
+	$_[0]->parent->backend->save($_[0]);
 };
 
 =head1 SEE ALSO

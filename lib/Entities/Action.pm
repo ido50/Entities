@@ -54,14 +54,36 @@ Returns the name of the action.
 
 has 'name' => (is => 'ro', isa => 'Str', required => 1);
 
-=head2 description( [$new_description] )
+=head2 description()
 
-Returns the description text of the action. If a new description is provided,
-it will be set as the action's description.
+Returns the description text of the action.
+
+=head2 set_description( $desc )
+
+Changes the description of the object to the provided value.
 
 =cut
 
-has 'description' => (is => 'rw', isa => 'Str');
+has 'description' => (is => 'ro', isa => 'Str', writer => 'set_description');
+
+=head2 created()
+
+Returns a L<DateTime> object in the time the action object has been
+created.
+
+=cut
+
+has 'created' => (is => 'ro', isa => 'DateTime', default => sub { DateTime->now() });
+
+=head2 modified( [$dt] )
+
+Returns a L<DateTime> object in the last time the action object has been
+modified. If a DateTime object is provided, it will be set as the new
+value of this attribute.
+
+=cut
+
+has 'modified' => (is => 'rw', isa => 'DateTime');
 
 =head2 parent()
 
@@ -70,6 +92,24 @@ Returns the L<Entities> instance that controls this object.
 =cut
 
 has 'parent' => (is => 'ro', isa => 'Entities', weak_ref => 1);
+
+=head1 METHOD MODIFIERS
+
+The following list documents any method modifications performed through
+the magic of L<Moose>.
+
+=head2 after anything_that_changes_object
+
+Automatically saves the object to the backend after any method that changed
+it was executed. Also updates the 'modified' attribute with the current time
+before saving.
+
+=cut
+
+after qw/set_description/ => sub {
+	$_[0]->modified(DateTime->now);
+	$_[0]->parent->backend->save($_[0]);
+};
 
 =head1 SEE ALSO
 

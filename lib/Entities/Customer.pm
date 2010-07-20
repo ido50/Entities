@@ -73,13 +73,13 @@ Returns the email address of the customer. In case of a company or organization,
 this should probably be a certain contact in the organization, possibly
 in the financial department.
 
-=head2 _set_email_address( $email )
+=head2 set_email_address( $email )
 
 Changes the email address of the customer to the provided value.
 
 =cut
 
-has 'email_address' => (is => 'ro', isa => EmailAddress, required => 1, writer => '_set_email_address');
+has 'email_address' => (is => 'ro', isa => EmailAddress, required => 1, writer => 'set_email_address');
 
 =head2 plans( [\@plans] )
 
@@ -326,6 +326,20 @@ around qw/plans features/ => sub {
 		my $ret = $self->$orig || [];
 		return wantarray ? @$ret : $ret;
 	}
+};
+
+=head2 after anything_that_changes_object
+
+Automatically saves the object to the backend after any method that changed
+it was executed. Also updates the 'modified' attribute with the current time
+before saving. Note, however, that the C<plans()> and C<features()> methods
+are not here, since they are only meant to be used for writing internally.
+
+=cut
+
+after qw/set_email_address add_plan drop_plan add_feature drop_feature/ => sub {
+	$_[0]->modified(DateTime->now);
+	$_[0]->parent->backend->save($_[0]);
 };
 
 =head1 SEE ALSO
