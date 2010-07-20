@@ -6,25 +6,101 @@ use Carp;
 
 with 'Entities::Backend';
 
+# ABSTRACT: A simple backend that stores all data in memory, for testing and development purposes.
+
+=head1 NAME
+
+Entities::Backend::Memory - A simple backend that stores all data in memory, for testing and development purposes.
+
+=head1 SYNOPSIS
+
+	use Entities;
+	use Entities::Backend::Memory;
+
+	# see synopsis at L<Entities>
+
+=head1 DESCRIPTION
+
+This L<backend|Entities::Backend> for the L<Entities> user management
+and authorization system stores all entities and relations between them
+in memory. It is only meant for quick testing and rapid development. Please,
+do not use this in production environments.
+
+=head1 UNIQUE METHODS
+
+The following method are unique to this backend only.
+
+=head2 new()
+
+Creates a new instance of this module.
+
+=head2 roles( [\@roles] )
+
+In scalar context, returns an array-ref of all <role objects|Entities::Role>
+stored in memory. In list context returns an array. If a list of role
+objects is provided, it will replace the current list.
+
+=cut
+
 has 'roles' => (is => 'rw', isa => 'ArrayRef[Entities::Role]');
+
+=head2 users( [\@users] )
+
+In scalar context, returns an array-ref of all <user objects|Entities::User>
+stored in memory. In list context returns an array. If a list of user
+objects is provided, it will replace the current list.
+
+=cut
+
 has 'users' => (is => 'rw', isa => 'ArrayRef[Entities::User]');
+
+=head2 actions( [\@actions] )
+
+In scalar context, returns an array-ref of all <action objects|Entities::Action>
+stored in memory. In list context returns an array. If a list of action
+objects is provided, it will replace the current list.
+
+=cut
+
 has 'actions' => (is => 'rw', isa => 'ArrayRef[Entities::Action]');
+
+=head2 plans( [\@plans] )
+
+In scalar context, returns an array-ref of all <plan objects|Entities::Plan>
+stored in memory. In list context returns an array. If a list of plan
+objects is provided, it will replace the current list.
+
+=cut
+
 has 'plans' => (is => 'rw', isa => 'ArrayRef[Entities::Plan]');
+
+=head2 customers( [\@customers] )
+
+In scalar context, returns an array-ref of all <customer objects|Entities::Customer>
+stored in memory. In list context returns an array. If a list of customer
+objects is provided, it will replace the current list.
+
+=cut
+
 has 'customers' => (is => 'rw', isa => 'ArrayRef[Entities::Customer]');
+
+=head2 features( [\@features] )
+
+In scalar context, returns an array-ref of all <feature objects|Entities::Feature>
+stored in memory. In list context returns an array. If a list of feature
+objects is provided, it will replace the current list.
+
+=cut
+
 has 'features' => (is => 'rw', isa => 'ArrayRef[Entities::Feature]');
 
-around qw/roles actions users plans customers features/ => sub {
-	my ($orig, $self) = (shift, shift);
+=head1 METHODS IMPLEMENTED
 
-	if (scalar @_) {
-		return $self->$orig(@_);
-	} else {
-		my $ret = $self->$orig || [];
-		return wantarray ? @$ret : $ret;
-	}
-};
+The following methods implement the methods that the L<Entities::Backend>
+Moose role requires backend classes to implement. See the documentation
+of that role for more information on these methods.
 
-=head2 get_user_from_id
+=head2 get_user_from_id( $user_id )
 
 =cut
 
@@ -38,7 +114,7 @@ sub get_user_from_id {
 	return;
 }
 
-=head2 get_user_from_name
+=head2 get_user_from_name( $username )
 
 =cut
 
@@ -52,7 +128,7 @@ sub get_user_from_name {
 	return;
 }
 
-=head2 get_role
+=head2 get_role( $role_name )
 
 =cut
 
@@ -66,7 +142,7 @@ sub get_role {
 	return;
 }
 
-=head2 get_customer
+=head2 get_customer( $customer_name )
 
 =cut
 
@@ -80,7 +156,7 @@ sub get_customer {
 	return;
 }
 
-=head2 get_plan
+=head2 get_plan( $plan_name )
 
 =cut
 
@@ -94,7 +170,7 @@ sub get_plan {
 	return;
 }
 
-=head2 get_feature
+=head2 get_feature( $feature_name )
 
 =cut
 
@@ -108,7 +184,7 @@ sub get_feature {
 	return;
 }
 
-=head2 get_action
+=head2 get_action( $action_name )
 
 =cut
 
@@ -122,7 +198,7 @@ sub get_action {
 	return;
 }
 
-=head2 save
+=head2 save( $obj )
 
 =cut
 
@@ -149,6 +225,83 @@ sub save {
 
 	return 1;
 }
+
+=head1 METHOD MODIFIERS
+
+The following list documents any method modifications performed through
+the magic of L<Moose>.
+
+=head2 around qw/roles actions users plans customers features/
+
+If any of the above methods are called in list context, this method
+modifier will automatically dereference the results into an array.
+
+=cut
+
+around qw/roles actions users plans customers features/ => sub {
+	my ($orig, $self) = (shift, shift);
+
+	if (scalar @_) {
+		return $self->$orig(@_);
+	} else {
+		my $ret = $self->$orig || [];
+		return wantarray ? @$ret : $ret;
+	}
+};
+
+=head1 SEE ALSO
+
+L<Entities>, L<Entities::Backend>, L<Entities::Backend::MongoDB>.
+
+=head1 AUTHOR
+
+Ido Perlmuter, C<< <ido at ido50 dot net> >>
+
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-entities at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Entities>.  I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Entities::Backend::Memory
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Entities>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Entities>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Entities>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Entities/>
+
+=back
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Ido Perlmuter.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation; or the Artistic License.
+
+See http://dev.perl.org/licenses/ for more information.
+
+=cut
 
 __PACKAGE__->meta->make_immutable;
 1;

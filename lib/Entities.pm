@@ -30,17 +30,11 @@ Entities - User management and authorization for web applications and subscripti
 	$role->grant_action('make_mess')
 	     ->inherit_from('limited_members');
 
-	# save new role to the backend
-	$ent->save($role);
-
 	# create a new user
 	my $user = $ent->new_user(username => 'someone');
 	$user->add_email('someone@someplace.com')
 	     ->add_to_role('members');
 	     ->grant_action('stuff');
-
-	# save new user to the backend
-	$ent->save($user);
 
 	# check user can do stuff
 	if ($user->can_perform('stuff')) {
@@ -136,7 +130,18 @@ role.
 
 =head1 METHODS
 
-=head2 new_role()
+=head2 new( backend => $backend )
+
+Creates a new instance of the Entities module. Requires a backend object
+to be used for storage (see L<Entities::Backend> for more information
+and a list of currently available backends).
+
+=head2 new_role( name => 'somerole', [ description => 'Just some role',
+is_super => 0, roles => [], actions => [], created => $dt_obj,
+modified => $other_dt_obj, parent => $entities_obj, id => 123 ] )
+
+Creates a new L<Entities::Role> object, stores it in the backend and
+returns it.
 
 =cut
 
@@ -146,7 +151,12 @@ sub new_role {
 	return Entities::Role->new(@_);
 }
 
-=head2 new_user()
+=head2 new_user( username => 'someguy', passphrase => 's3cr3t', [ realname => 'Some Guy',
+is_super => 0, roles => [], actions => [], customer => $customer_obj, id => 123,
+emails => [], created => $dt_obj, modified => $other_dt_obj, parent => $entities_obj ] )
+
+Creates a new L<Entities::User> object, stores it in the backend and
+returns it.
 
 =cut
 
@@ -156,7 +166,11 @@ sub new_user {
 	return Entities::User->new(@_);
 }
 
-=head2 new_action
+=head2 new_action( name => 'someaction', [ description => 'Just some action',
+parent => $entities_obj, id => 123 ] )
+
+Creates a new L<Entities::Action> object, stores it in the backend and
+returns it.
 
 =cut
 
@@ -166,7 +180,12 @@ sub new_action {
 	return Entities::Action->new(@_);
 }
 
-=head2 new_plan
+=head2 new_plan( name => 'someplan', [ description => 'Just some plan',
+features => [], plans => [], created => $dt_obj, modified => $other_dt_obj,
+parent => $entities_obj, id => 123 ] )
+
+Creates a new L<Entities::Plan> object, stores it in the backend and
+returns it.
 
 =cut
 
@@ -176,7 +195,11 @@ sub new_plan {
 	return Entities::Plan->new(@_);
 }
 
-=head2 new_feature
+=head2 new_feature( name => 'somefeature', [ description => 'Just some feature',
+parent => $entities_obj, id => 123 ] )
+
+Creates a new L<Entities::Feature> object, stores it in the backend
+and returns it.
 
 =cut
 
@@ -186,7 +209,12 @@ sub new_feature {
 	return Entities::Feature->new(@_);
 }
 
-=head2 new_customer
+=head2 new_customer( name => 'somecustomer', email_address => 'customer@customer.com',
+[ features => [], plans => [], created => $dt_obj, modified => $other_dt_obj,
+parent => $entities_obj, id => 123 ] )
+
+Creates a new L<Entities::Customer> object, stores it in the backend
+and returns it.
 
 =cut
 
@@ -195,6 +223,20 @@ sub new_customer {
 
 	return Entities::Customer->new(@_);
 }
+
+=head1 METHOD MODIFIERS
+
+The following list documents any method modifications performed through
+the magic of L<Moose>.
+
+=head2 around qr/^new_.+$/
+
+This method modifier is used when any of the above C<new_something> methods
+are invoked. It is used to automatically pass the Entities object to the
+newly created object (as the 'parent' attribute), and to automatically
+save the object in the backend.
+
+=cut
 
 around qr/^new_.+$/ => sub {
 	my ($orig, $self) = (shift, shift);
@@ -208,13 +250,9 @@ around qr/^new_.+$/ => sub {
 	return $obj;
 };
 
-=head2 save
+=head1 SEE ALSO
 
-=cut
-
-sub save {
-	$_[0]->backend->save($_[1]);
-}
+L<Abilities>, L<Abilities::Features>, L<Catalyst::Authentication::Abilities>.
 
 =head1 AUTHOR
 
