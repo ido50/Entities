@@ -124,9 +124,30 @@ role.
 
 =back
 
-=head2 SCOPING
+=head2 SCOPING AND LIMITING
 
-=head2 LIMITING
+Scoping is the process of asserting that customers and their users are
+only allowed to perform actions in their own scope. For example, let's say
+your web service is a hosted blogging platform. Customers of your service
+are allowed to create blogs (i.e. they have the 'blogs' feature), and their
+users are allowed to post to these blogs, edit the posts and remove them
+(i.e. they have the 'create_post', 'edit_post' and 'delete_post' actions).
+Scoping means ensuring users can only create, edit and delete posts in their
+parent customer's blogs only.
+
+Limiting is the process of, well, limiting the amount of times a customer
+can use a certain feature. Returning to our hosted blog example, the customer's
+plan might limit the number of blogs the customer can own to a certain number,
+let's say six. When a user of that customer attempts to create a new blog,
+a check must be made that the customer has yet to reach the maximum amount
+of blogs. Users, in themselves, are common features in many plan-based
+web services. A customer might be able to create, for example, up to
+five users in a certain plan. Limiting is, therefore, an important part
+of plan-based web services.
+
+Obviously, the L<Entities> system cannot do scoping and limiting for you,
+so you have to do this yourself. However, I do have plans to provide some
+simple features in upcoming releases to make these processes easier.
 
 =head1 METHODS
 
