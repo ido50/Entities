@@ -57,7 +57,7 @@ internally.
 
 =cut
 
-has 'id' => (is => 'ro', isa => 'Str', predicate => 'has_id', writer => '_set_id');
+has 'id' => (is => 'ro', isa => 'Any', predicate => 'has_id', writer => '_set_id');
 
 =head2 name()
 
@@ -129,15 +129,15 @@ value of this attribute.
 
 =cut
 
-has 'modified' => (is => 'rw', isa => 'DateTime');
+has 'modified' => (is => 'rw', isa => 'DateTime', default => sub { DateTime->now() });
 
 =head2 parent()
 
-Returns the L<Entities> instance that controls this object.
+Returns the L<Entities::Backend> instance that stores this object.
 
 =cut
 
-has 'parent' => (is => 'ro', isa => 'Entities', weak_ref => 1);
+has 'parent' => (is => 'ro', does => 'Entities::Backend', weak_ref => 1);
 
 with 'Abilities::Features';
 
@@ -161,7 +161,7 @@ sub add_plan {
 	}
 
 	# find the plan, does it exist?
-	my $plan = $self->parent->backend->get_plan($plan_name);
+	my $plan = $self->parent->get_plan($plan_name);
 	croak "plan $plan_name does not exist." unless $plan;
 
 	# add the customer to the plan
@@ -222,7 +222,7 @@ sub add_feature {
 	}
 
 	# find the feature, does it exist?
-	my $feature = $self->parent->backend->get_feature($feature_name);
+	my $feature = $self->parent->get_feature($feature_name);
 	croak "Feature $feature_name does not exist." unless $feature;
 
 	# add the feature to the customer
@@ -339,7 +339,7 @@ are not here, since they are only meant to be used for writing internally.
 
 after qw/set_email_address add_plan drop_plan add_feature drop_feature/ => sub {
 	$_[0]->modified(DateTime->now);
-	$_[0]->parent->backend->save($_[0]);
+	$_[0]->parent->save($_[0]);
 };
 
 =head1 SEE ALSO

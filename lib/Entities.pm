@@ -241,7 +241,7 @@ save the object in the backend.
 around qr/^new_.+$/ => sub {
 	my ($orig, $self) = (shift, shift);
 
-	push(@_, parent => $self);
+	push(@_, parent => $self->backend);
 
 	my $obj = $self->$orig(@_);
 

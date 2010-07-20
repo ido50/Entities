@@ -54,7 +54,7 @@ internally.
 
 =cut
 
-has 'id' => (is => 'ro', isa => 'Str', predicate => 'has_id', writer => '_set_id');
+has 'id' => (is => 'ro', isa => 'Any', predicate => 'has_id', writer => '_set_id');
 
 =head2 name()
 
@@ -128,15 +128,15 @@ If a DateTime object is provided, it is set as the new modified value.
 
 =cut
 
-has 'modified' => (is => 'rw', isa => 'DateTime');
+has 'modified' => (is => 'rw', isa => 'DateTime', default => sub { DateTime->now() });
 
 =head2 parent()
 
-Returns the L<Entities> instance that controls this object.
+Returns the L<Entities::Backend> instance that stores this object.
 
 =cut
 
-has 'parent' => (is => 'ro', isa => 'Entities', weak_ref => 1);
+has 'parent' => (is => 'ro', does => 'Entities::Backend', weak_ref => 1);
 
 with 'Abilities';
 
@@ -183,7 +183,7 @@ sub grant_action {
 	}
 
 	# find this action, does it even exist?
-	my $action = $self->parent->backend->get_action($action_name);
+	my $action = $self->parent->get_action($action_name);
 	croak "Action $action_name does not exist." unless $action;
 
 	# add this action
@@ -249,7 +249,7 @@ sub inherit_from_role {
 	}
 
 	# find this role, does it even exist?
-	my $role = $self->parent->backend->get_role($role_name);
+	my $role = $self->parent->get_role($role_name);
 	croak "Role $role_name does not exist." unless $role;
 
 	# add this role
@@ -339,7 +339,7 @@ are not here, since they are only meant to be used for writing internally.
 
 after qw/set_description grant_action drop_action inherit_from_role dont_inherit_from_role/ => sub {
 	$_[0]->modified(DateTime->now);
-	$_[0]->parent->backend->save($_[0]);
+	$_[0]->parent->save($_[0]);
 };
 
 =head1 SEE ALSO

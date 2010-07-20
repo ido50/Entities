@@ -1,6 +1,8 @@
 package Entities::Action;
 
 use Moose;
+use Moose::Util::TypeConstraints;
+use MooseX::Types::DateTime;
 use namespace::autoclean;
 
 # ABSTRACT: A piece of code/functionality that a user entity can perform.
@@ -25,7 +27,7 @@ the C<new_action()> method in L<Entities>.
 =head1 METHODS
 
 =head2 new( name => 'someaction', [ description => 'Just some action',
-parent => $entities_obj, id => 123 ] )
+parent => $entities_obj, id => 123, created => $dt, modified => $other_dt ] )
 
 Creates a new instance of this module. Only 'name' is required.
 
@@ -44,7 +46,7 @@ internally.
 
 =cut
 
-has 'id' => (is => 'ro', isa => 'Str', predicate => 'has_id', writer => '_set_id');
+has 'id' => (is => 'ro', isa => 'Any', predicate => 'has_id', writer => '_set_id');
 
 =head2 name()
 
@@ -83,15 +85,15 @@ value of this attribute.
 
 =cut
 
-has 'modified' => (is => 'rw', isa => 'DateTime');
+has 'modified' => (is => 'rw', isa => 'DateTime', default => sub { DateTime->now() });
 
 =head2 parent()
 
-Returns the L<Entities> instance that controls this object.
+Returns the L<Entities::Backend> instance that stores this object.
 
 =cut
 
-has 'parent' => (is => 'ro', isa => 'Entities', weak_ref => 1);
+has 'parent' => (is => 'ro', does => 'Entities::Backend', weak_ref => 1);
 
 =head1 METHOD MODIFIERS
 
@@ -108,7 +110,7 @@ before saving.
 
 after qw/set_description/ => sub {
 	$_[0]->modified(DateTime->now);
-	$_[0]->parent->backend->save($_[0]);
+	$_[0]->parent->save($_[0]);
 };
 
 =head1 SEE ALSO

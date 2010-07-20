@@ -1,9 +1,14 @@
 package Entities::Backend::MongoDB;
 
+BEGIN {
+	use Carp;
+	eval { require MongoDB; };
+	croak "MongoDB must be installed in order to use Entities::Backend::MongoDB." if $@;
+}
+
 use Moose;
 use namespace::autoclean;
-use MongoDB;
-use Carp;
+use DateTime::Format::ISO8601;
 
 with 'Entities::Backend';
 
@@ -78,6 +83,71 @@ the current object.
 
 has 'db' => (is => 'rw', isa => 'MongoDB::Database');
 
+=head2 to_hash( $obj )
+
+Receives an entity object (either user, action, role, feature, plan or
+customer) and turns it into a hash-ref that can be saved in the database.
+
+=cut
+
+sub to_hash {
+	my ($self, $obj) = @_;
+
+	my $hash;
+
+	if ($obj->isa('Entities::User')) {
+		return {
+			username => $obj->username,
+			passphrase => $obj->passphrase,
+			realname => $obj->realname,
+			is_super => $obj->is_super ? 1 : 0,
+			created => $obj->created->datetime,
+			modified => $obj->modified->datetime,
+			actions => [map($_->name, $obj->actions)],
+			roles => [map($_->name, $obj->roles)],
+			emails => [map($_, $obj->emails)],
+			customer => $obj->customer ? $obj->customer->name : undef,
+		};
+	} elsif ($obj->isa('Entities::Role')) {
+		return {
+			name => $obj->name,
+			desription => $obj->description,
+			is_super => $obj->is_super ? 1 : 0,
+			created => $obj->created->datetime,
+			modified => $obj->modified->datetime,
+			actions => [map($_->name, $obj->actions)],
+			roles => [map($_->name, $obj->roles)],
+		};
+	} elsif ($obj->isa('Entities::Action') || $obj->isa('Entities::Feature')) {
+		return {
+			name => $obj->name,
+			desription => $obj->description,
+			created => $obj->created->datetime,
+			modified => $obj->modified->datetime,
+		};
+	} elsif ($obj->isa('Entities::Customer')) {
+		return {
+			name => $obj->name,
+			email_address => $obj->email_address,
+			created => $obj->created->datetime,
+			modified => $obj->modified->datetime,
+			features => [map($_->name, $obj->features)],
+			plans => [map($_->name, $obj->plans)],
+		};
+	} elsif ($obj->isa('Entities::Plan')) {
+		return {
+			name => $obj->name,
+			description => $obj->description,
+			created => $obj->created->datetime,
+			modified => $obj->modified->datetime,
+			features => [map($_->name, $obj->features)],
+			plans => [map($_->name, $obj->plans)],
+		};
+	} else {
+		croak "Received an object that doesn't belong to the Entities family.";
+	}
+}
+
 =head1 METHODS IMPLEMENTED
 
 The following methods implement the methods that the L<Entities::Backend>
@@ -91,7 +161,14 @@ of that role for more information on these methods.
 sub get_user_from_id {
 	my ($self, $id) = @_;
 
-	return $self->db->get_collection('users')->find_one({ _id => $id });
+	my $user = $self->db->get_collection('users')->find_one({ _id => $id });
+	return unless $user;
+
+	# turn this into an object
+	my @roles = map { $self->get_role($_) } @{$user->{roles}};
+	my @actions = map { $self->get_action($_) } @{$user->{actions}};
+
+	return Entities::User->new(id => $user->{_id}, username => $user->{username}, realname => $user->{realname}, customer => $user->{customer} ? $self->get_customer($user->{customer}) : undef, passphrase => $user->{passphrase}, is_super => $user->{is_super}, roles => \@roles, actions => \@actions, emails => $user->{emails}, created => DateTime::Format::ISO8601->parse_datetime($user->{created}), modified => DateTime::Format::ISO8601->parse_datetime($user->{modified}), parent => $self);
 }
 
 =head2 get_user_from_name( $username )
@@ -101,7 +178,14 @@ sub get_user_from_id {
 sub get_user_from_name {
 	my ($self, $username) = @_;
 
-	return $self->db->get_collection('users')->find_one({ username => $username });
+	my $user = $self->db->get_collection('users')->find_one({ username => $username });
+	return unless $user;
+
+	# turn this into an object
+	my @roles = map { $self->get_role($_) } @{$user->{roles}};
+	my @actions = map { $self->get_action($_) } @{$user->{actions}};
+
+	return Entities::User->new(id => $user->{_id}, username => $user->{username}, realname => $user->{realname}, customer => $user->{customer} ? $self->get_customer($user->{customer}) : undef, passphrase => $user->{passphrase}, is_super => $user->{is_super}, roles => \@roles, actions => \@actions, emails => $user->{emails}, created => DateTime::Format::ISO8601->parse_datetime($user->{created}), modified => DateTime::Format::ISO8601->parse_datetime($user->{modified}), parent => $self);
 }
 
 =head2 get_role( $role_name )
@@ -111,7 +195,16 @@ sub get_user_from_name {
 sub get_role {
 	my ($self, $name) = @_;
 
-	return $self->db->get_collection('roles')->find_one({ name => $name });
+	my $role = $self->db->get_collection('roles')->find_one({ name => $name });
+	return unless $role;
+	
+	# turn this into an object
+	my @roles = map { $self->get_role($_) } @{$role->{roles}};
+	my @actions = map { $self->get_action($_) } @{$role->{actions}};
+
+	$role->{description} ||= '';
+
+	return Entities::Role->new(id => $role->{_id}, name => $role->{name}, description => $role->{description}, is_super => $role->{is_super}, roles => \@roles, actions => \@actions, created => DateTime::Format::ISO8601->parse_datetime($role->{created}), modified => DateTime::Format::ISO8601->parse_datetime($role->{modified}), parent => $self);
 }
 
 =head2 get_customer( $customer_name )
@@ -121,7 +214,14 @@ sub get_role {
 sub get_customer {
 	my ($self, $name) = @_;
 
-	return $self->db->get_collection('customers')->find_one({ name => $name });
+	my $customer = $self->db->get_collection('customers')->find_one({ name => $name });
+	return unless $customer;
+	
+	# turn this into an object
+	my @features = map { $self->get_feature($_) } @{$customer->{features}};
+	my @plans = map { $self->get_plan($_) } @{$customer->{plans}};
+
+	return Entities::Customer->new(id => $customer->{_id}, name => $customer->{name}, email_address => $customer->{email_address}, features => \@features, plans => \@plans, created => DateTime::Format::ISO8601->parse_datetime($customer->{created}), modified => DateTime::Format::ISO8601->parse_datetime($customer->{modified}), parent => $self);
 }
 
 =head2 get_plan( $plan_name )
@@ -131,7 +231,16 @@ sub get_customer {
 sub get_plan {
 	my ($self, $name) = @_;
 
-	return $self->db->get_collection('plans')->find_one({ name => $name });
+	my $plan = $self->db->get_collection('plans')->find_one({ name => $name });
+	return unless $plan;
+	
+	# turn this into an object
+	my @features = map { $self->get_feature($_) } @{$plan->{features}};
+	my @plans = map { $self->get_plan($_) } @{$plan->{plans}};
+
+	$plan->{description} ||= '';
+
+	return Entities::Plan->new(id => $plan->{_id}, name => $plan->{name}, description => $plan->{description}, features => \@features, plans => \@plans, created => DateTime::Format::ISO8601->parse_datetime($plan->{created}), modified => DateTime::Format::ISO8601->parse_datetime($plan->{modified}), parent => $self);
 }
 
 =head2 get_feature( $feature_name )
@@ -141,7 +250,13 @@ sub get_plan {
 sub get_feature {
 	my ($self, $name) = @_;
 
-	return $self->db->get_collection('features')->find_one({ name => $name });
+	my $feature = $self->db->get_collection('features')->find_one({ name => $name });
+	return unless $feature;
+
+	$feature->{description} ||= '';
+	
+	# turn this into an object
+	return Entities::Feature->new(id => $feature->{_id}, name => $feature->{name}, description => $feature->{description}, created => DateTime::Format::ISO8601->parse_datetime($feature->{created}), modified => DateTime::Format::ISO8601->parse_datetime($feature->{modified}), parent => $self);
 }
 
 =head2 get_action( $action_name )
@@ -151,7 +266,13 @@ sub get_feature {
 sub get_action {
 	my ($self, $name) = @_;
 
-	return $self->db->get_collection('actions')->find_one({ name => $name });
+	my $action = $self->db->get_collection('actions')->find_one({ name => $name });
+	return unless $action;
+
+	$action->{description} ||= '';
+	
+	# turn this into an object
+	return Entities::Action->new(id => $action->{_id}, name => $action->{name}, description => $action->{description}, created => DateTime::Format::ISO8601->parse_datetime($action->{created}), modified => DateTime::Format::ISO8601->parse_datetime($action->{modified}), parent => $self);
 }
 
 =head2 save( $obj )
@@ -161,7 +282,7 @@ sub get_action {
 sub save {
 	my ($self, $obj) = @_;
 
-	my $coll =	$obj->isa('Entities::User') ? 'users' :
+	my $coll_name = $obj->isa('Entities::User') ? 'users' :
 			$obj->isa('Entities::Role') ? 'roles' :
 			$obj->isa('Entities::Action') ? 'actions' :
 			$obj->isa('Entities::Feature') ? 'features' :
@@ -170,18 +291,26 @@ sub save {
 			'unknown';
 
 	croak "Can't find out the type of object received, it is not a valid Entity"
-		if $coll eq 'unknown';
+		if $coll_name eq 'unknown';
 
 	if ($obj->has_id) {
 		# we're updating an existing object
-		croak "Failed updating the object in MongoDB collection $coll: ".$self->db->last_error
-			unless $self->db->get_collection($coll)->update({ _id => $obj->id }, $self->to_hash($obj), { safe => 1 });
+		croak "Failed updating the object in MongoDB collection $coll_name: ".$self->db->last_error
+			unless $self->db->get_collection($coll_name)->update({ _id => $obj->id }, $self->to_hash($obj), { safe => 1 });
 	} else {
 		# we're storing a new object
-		my $id = $self->db->get_collection($coll)->insert($self->to_hash($obj), { safe => 1 });
+		my $coll = $self->db->get_collection($coll_name);
+		if ($coll_name eq 'users') {
+			$coll->ensure_index({ username => 1 }, { unique => 1 });
+			$coll->ensure_index({ customer => 1 });
+		} else {
+			$coll->ensure_index({ name => 1 }, { unique => 1 });
+		}
+
+		my $id = $coll->insert($self->to_hash($obj), { safe => 1 });
 		croak "Failed creating the object in MongoDB collection $coll: ".$self->db->last_error
 			unless $id;
-		$self->_set_id($id);
+		$obj->_set_id($id);
 	}
 
 	return 1;
