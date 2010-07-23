@@ -1,13 +1,9 @@
 package Entities::Backend::MongoDB;
 
-BEGIN {
-	use Carp;
-	eval { require MongoDB; };
-	croak "MongoDB must be installed in order to use Entities::Backend::MongoDB." if $@;
-}
-
 use Moose;
 use namespace::autoclean;
+use MongoDB;
+use Carp;
 use DateTime::Format::ISO8601;
 
 with 'Entities::Backend';

@@ -5,11 +5,8 @@ use warnings;
 use Test::More tests => 76;
 use Test::Moose;
 use Entities;
+use Entities::Backend::MongoDB;
 use Digest::MD5 qw/md5_hex/;
-use Carp;
-
-eval "use Entities::Backend::MongoDB";
-plan skip_all => "MongoDB and Entities::Backend::MongoDB required for testing MongoDB backend." if $@;
 
 SKIP: {
 	my $bac;

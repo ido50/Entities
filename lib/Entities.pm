@@ -97,7 +97,7 @@ of all your plans, with different limits set on this feature for every plan.
 In other words, features are as they're named: the features of your app.
 It's your decision who gets to use them.
 
-=item * Actions (represented by L<Entities::Actions>)
+=item * Actions (represented by L<Entities::Action>)
 
 Actions are the core of 'ability-based authorization'. They define the
 actual activities that users can perform inside your app. For example,
