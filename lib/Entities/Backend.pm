@@ -99,10 +99,11 @@ requires 'get_customer';
 
 =head2 save( $obj )
 
-Receives a new entity object (either L<User|Entities::User>, L<Role|Entities::Role>,
+Receives a new or existing entity object (either L<User|Entities::User>, L<Role|Entities::Role>,
 L<Action|Entities::Action>, L<Plan|Entities::Plan>, L<Customer|Entities::Customer>
 or L<Feature|Entities::Feature>) and saves it to the backend. Should return
-a true value if the save was successful or croak otherwise.
+a true value if the save was successful or croak otherwise. To make it clear,
+this method should insert new objects and update existing ones.
 
 =cut
 

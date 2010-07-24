@@ -31,7 +31,7 @@ backend right now that can be used in production environments.
 
 A big advantage of using this backend is that there is no setup work
 necessary. Just make sure your MongoDB daemon is running, and this
-backend will automatically created the database and necessary collections.
+backend will automatically create the database and necessary collections.
 
 =head1 UNIQUE METHODS
 
@@ -40,7 +40,7 @@ The following method are unique to this backend only.
 =head2 new( [host => 'localhost', port => 27017, db_name => 'entities'] )
 
 Creates a new instance of this module. Can receive the hostname of the server
-running the MongoDB daemon, the port on thiat host where the daemon is
+running the MongoDB daemon, the port on that host where the daemon is
 listening, and the name of the database to use. None of these parameters
 is required, host will default to 'localhost', port will default to 27017
 (the default MongoDB port) and db_name will default to 'entities'.
