@@ -60,7 +60,7 @@ Ability-based authorization deals with six types of "entities":
 
 =over
 
-=item * Customers (represented by L<Entities::Customer>
+=item * Customers (represented by L<Entities::Customer>)
 
 A customer is an abstract entity that merely serves to unify the people
 who are actually using your app (see "users"). It can either be a person,
@@ -68,18 +68,18 @@ a company, an organization or whatever. Basically, the customer is the
 "body" that signed up for your service and possibly is paying for it. A
 customer can have 1 or more users.
 
-=item * Users (represented by L<Entities::User>
+=item * Users (represented by L<Entities::User>)
 
-A user is a person that belongs to a certain company and has received
+A user is a person that belongs to a certain customer and has received
 access to your app. They are the actual entities that are interacting with
-your application, not their parent entities (i.e. customers). Users have
+your application, not their parent customer entities. Users have
 the ability to perform actions (see later), probably only within their
-parent entity's scope (see L</"SCOPING">) and maybe to a certain limit
-(see L</"LIMITING">).
+parent entity's scope and maybe to a certain limit
+(see L</"SCOPING AND LIMITING">).
 
 =item * Plans (represented by L<Entities::Plan>)
 
-A plan is a group of features (see "features"), with certain limits and
+A plan is a group of features (see below), with certain limits and
 scoping restrictions, that customers subscribe to. You are probably familiar
 with this concept from web services you use (like GitHub, Google Apps, etc.).
 
@@ -105,7 +105,7 @@ actual activities that users can perform inside your app. For example,
 example would be 'approving comments'. Maybe even 'creating new users'.
 
 Actions, therefore, are units of "work" you define in your code. Users will
-be able to perform such unit of work only if they are granted with the 'ability'
+be able to perform such a unit of work only if they are granted with the 'ability'
 to perform the action the defines it, and only if this action is within
 the defined 'scope' and 'limit' of the parent customer. A certain ability
 can be bestowed upon a user either explicitly, or via roles (see below).
@@ -116,7 +116,7 @@ Roles might be familiar to you from 'role-based authorization'. Figuratively
 speaking, they are 'masks' that users can wear. A role is nothing but a
 group of actions. When a user is assigned a certain role, they consume
 all the actions defined in that role, and therefore the user is able to
-perform it. You will most likely find yourself creating roles such as
+perform them. You will most likely find yourself creating roles such as
 'admins', 'members', 'guests', etc.
 
 Roles are self-inheriting, i.e. a role can inherit the actions of another
