@@ -314,6 +314,12 @@ sub dont_take_from_plan {
 	return $self;
 }
 
+=head2 get_plan( $plan_name )
+
+Returns the plan object of the plan named C<$plan_name>.
+
+=cut
+
 sub get_plan { shift->parent->get_plan(@_) }
 
 =head1 METHOD MODIFIERS

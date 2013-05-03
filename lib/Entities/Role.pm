@@ -331,6 +331,12 @@ sub dont_inherit_from_role {
 	return $self;
 }
 
+=head2 get_role( $role_name )
+
+Returns the role object of the role named C<$role_name>.
+
+=cut
+
 sub get_role { shift->parent->get_role(@_) }
 
 =head1 METHOD MODIFIERS
