@@ -116,8 +116,8 @@ sub to_hash {
 			is_super => $obj->is_super ? 1 : 0,
 			created => $obj->created->datetime,
 			modified => $obj->modified->datetime,
-			actions => [$obj->_actions],
-			roles => [$obj->_roles],
+			actions => [$obj->actions],
+			roles => [$obj->roles],
 			emails => [$obj->emails],
 			customer => $obj->customer ? $obj->customer->name : undef,
 		};
@@ -128,8 +128,8 @@ sub to_hash {
 			is_super => $obj->is_super ? 1 : 0,
 			created => $obj->created->datetime,
 			modified => $obj->modified->datetime,
-			actions => [$obj->_actions],
-			roles => [$obj->_roles],
+			actions => [$obj->actions],
+			roles => [$obj->roles],
 		};
 	} elsif ($obj->isa('Entities::Action') || $obj->isa('Entities::Feature')) {
 		return {
@@ -144,8 +144,8 @@ sub to_hash {
 			email_address => $obj->email_address,
 			created => $obj->created->datetime,
 			modified => $obj->modified->datetime,
-			features => [$obj->_features],
-			plans => [$obj->_plans],
+			features => [$obj->features],
+			plans => [$obj->plans],
 		};
 	} elsif ($obj->isa('Entities::Plan')) {
 		return {
@@ -153,8 +153,8 @@ sub to_hash {
 			description => $obj->description,
 			created => $obj->created->datetime,
 			modified => $obj->modified->datetime,
-			features => [$obj->_features],
-			plans => [$obj->_plans],
+			features => [$obj->features],
+			plans => [$obj->plans],
 		};
 	} else {
 		croak "Received an object that doesn't belong to the Entities family.";
@@ -178,7 +178,7 @@ sub get_user_from_id {
 	return unless $user;
 
 	# turn this into an object
-	return Entities::User->new(id => $user->{_id}, username => $user->{username}, realname => $user->{realname}, customer => $user->{customer} ? $self->get_customer($user->{customer}) : undef, passphrase => $user->{passphrase}, is_super => $user->{is_super}, _roles => $user->{roles}, _actions => $user->{actions}, emails => $user->{emails}, created => DateTime::Format::ISO8601->parse_datetime($user->{created}), modified => DateTime::Format::ISO8601->parse_datetime($user->{modified}), parent => $self);
+	return Entities::User->new(id => $user->{_id}, username => $user->{username}, realname => $user->{realname}, customer => $user->{customer} ? $self->get_customer($user->{customer}) : undef, passphrase => $user->{passphrase}, is_super => $user->{is_super}, roles => $user->{roles}, actions => $user->{actions}, emails => $user->{emails}, created => DateTime::Format::ISO8601->parse_datetime($user->{created}), modified => DateTime::Format::ISO8601->parse_datetime($user->{modified}), parent => $self);
 }
 
 =head2 get_user_from_name( $username )
@@ -192,7 +192,7 @@ sub get_user_from_name {
 	return unless $user;
 
 	# turn this into an object
-	return Entities::User->new(id => $user->{_id}, username => $user->{username}, realname => $user->{realname}, customer => $user->{customer} ? $self->get_customer($user->{customer}) : undef, passphrase => $user->{passphrase}, is_super => $user->{is_super}, _roles => $user->{roles}, _actions => $user->{actions}, emails => $user->{emails}, created => DateTime::Format::ISO8601->parse_datetime($user->{created}), modified => DateTime::Format::ISO8601->parse_datetime($user->{modified}), parent => $self);
+	return Entities::User->new(id => $user->{_id}, username => $user->{username}, realname => $user->{realname}, customer => $user->{customer} ? $self->get_customer($user->{customer}) : undef, passphrase => $user->{passphrase}, is_super => $user->{is_super}, roles => $user->{roles}, actions => $user->{actions}, emails => $user->{emails}, created => DateTime::Format::ISO8601->parse_datetime($user->{created}), modified => DateTime::Format::ISO8601->parse_datetime($user->{modified}), parent => $self);
 }
 
 =head2 get_role( $role_name )
@@ -208,7 +208,7 @@ sub get_role {
 	# turn this into an object
 	$role->{description} ||= '';
 
-	return Entities::Role->new(id => $role->{_id}, name => $role->{name}, description => $role->{description}, is_super => $role->{is_super}, _roles => $role->{roles}, _actions => $role->{actions}, created => DateTime::Format::ISO8601->parse_datetime($role->{created}), modified => DateTime::Format::ISO8601->parse_datetime($role->{modified}), parent => $self);
+	return Entities::Role->new(id => $role->{_id}, name => $role->{name}, description => $role->{description}, is_super => $role->{is_super}, roles => $role->{roles}, actions => $role->{actions}, created => DateTime::Format::ISO8601->parse_datetime($role->{created}), modified => DateTime::Format::ISO8601->parse_datetime($role->{modified}), parent => $self);
 }
 
 =head2 get_customer( $customer_name )
@@ -222,7 +222,7 @@ sub get_customer {
 	return unless $customer;
 	
 	# turn this into an object
-	return Entities::Customer->new(id => $customer->{_id}, name => $customer->{name}, email_address => $customer->{email_address}, _features => $customer->{features}, _plans => $customer->{plans}, created => DateTime::Format::ISO8601->parse_datetime($customer->{created}), modified => DateTime::Format::ISO8601->parse_datetime($customer->{modified}), parent => $self);
+	return Entities::Customer->new(id => $customer->{_id}, name => $customer->{name}, email_address => $customer->{email_address}, features => $customer->{features}, plans => $customer->{plans}, created => DateTime::Format::ISO8601->parse_datetime($customer->{created}), modified => DateTime::Format::ISO8601->parse_datetime($customer->{modified}), parent => $self);
 }
 
 =head2 get_plan( $plan_name )
@@ -238,7 +238,7 @@ sub get_plan {
 	# turn this into an object
 	$plan->{description} ||= '';
 
-	return Entities::Plan->new(id => $plan->{_id}, name => $plan->{name}, description => $plan->{description}, _features => $plan->{features}, _plans => $plan->{plans}, created => DateTime::Format::ISO8601->parse_datetime($plan->{created}), modified => DateTime::Format::ISO8601->parse_datetime($plan->{modified}), parent => $self);
+	return Entities::Plan->new(id => $plan->{_id}, name => $plan->{name}, description => $plan->{description}, features => $plan->{features}, plans => $plan->{plans}, created => DateTime::Format::ISO8601->parse_datetime($plan->{created}), modified => DateTime::Format::ISO8601->parse_datetime($plan->{modified}), parent => $self);
 }
 
 =head2 get_feature( $feature_name )

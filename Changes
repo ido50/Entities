@@ -1,7 +1,7 @@
 Revision history for Entities
 
 {{$NEXT}}
-	- Updated to reflect changes introduced in Abilities v0.3
+	- Updated to reflect changes introduced in Abilities v0.5
 	- Moved from Moose to Moo
 	- Now using MongoDB::MongoClient instead of MongoDB::Connection
 
