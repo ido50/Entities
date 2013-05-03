@@ -1,5 +1,8 @@
 package Entities::Backend;
 
+our $VERSION = "0.4";
+$VERSION = eval $VERSION;
+
 use Moo::Role;
 use namespace::autoclean;
 

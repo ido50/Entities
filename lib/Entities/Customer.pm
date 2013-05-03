@@ -1,5 +1,8 @@
 package Entities::Customer;
 
+our $VERSION = "0.4";
+$VERSION = eval $VERSION;
+
 use Carp;
 use DateTime;
 use Moo;

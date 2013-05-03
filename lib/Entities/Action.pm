@@ -1,5 +1,8 @@
 package Entities::Action;
 
+our $VERSION = "0.4";
+$VERSION = eval $VERSION;
+
 use Carp;
 use Moo;
 use MooX::Types::MooseLike::Base qw/Any Str/;

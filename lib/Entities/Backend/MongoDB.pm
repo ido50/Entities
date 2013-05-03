@@ -1,5 +1,8 @@
 package Entities::Backend::MongoDB;
 
+our $VERSION = "0.4";
+$VERSION = eval $VERSION;
+
 use Carp;
 use DateTime::Format::ISO8601;
 use MongoDB;

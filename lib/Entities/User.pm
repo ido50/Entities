@@ -1,5 +1,8 @@
 package Entities::User;
 
+our $VERSION = "0.4";
+$VERSION = eval $VERSION;
+
 use Carp;
 use Digest::MD5 qw/md5_hex/;
 use Moo;

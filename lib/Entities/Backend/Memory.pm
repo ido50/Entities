@@ -1,5 +1,8 @@
 package Entities::Backend::Memory;
 
+our $VERSION = "0.4";
+$VERSION = eval $VERSION;
+
 use Carp;
 use Moo;
 use MooX::Types::MooseLike::Base qw/ArrayRef/;
