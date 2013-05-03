@@ -1,8 +1,9 @@
 package Entities::Backend::Memory;
 
-use Moose;
-use namespace::autoclean;
 use Carp;
+use Moo;
+use MooX::Types::MooseLike::Base qw/ArrayRef/;
+use namespace::autoclean;
 
 with 'Entities::Backend';
 
@@ -42,7 +43,10 @@ objects is provided, it will replace the current list.
 
 =cut
 
-has 'roles' => (is => 'rw', isa => 'ArrayRef[Entities::Role]');
+has 'roles' => (
+	is => 'rw',
+	isa => ArrayRef
+);
 
 =head2 users( [\@users] )
 
@@ -52,7 +56,10 @@ objects is provided, it will replace the current list.
 
 =cut
 
-has 'users' => (is => 'rw', isa => 'ArrayRef[Entities::User]');
+has 'users' => (
+	is => 'rw',
+	isa => ArrayRef
+);
 
 =head2 actions( [\@actions] )
 
@@ -62,7 +69,10 @@ objects is provided, it will replace the current list.
 
 =cut
 
-has 'actions' => (is => 'rw', isa => 'ArrayRef[Entities::Action]');
+has 'actions' => (
+	is => 'rw',
+	isa => ArrayRef
+);
 
 =head2 plans( [\@plans] )
 
@@ -72,7 +82,10 @@ objects is provided, it will replace the current list.
 
 =cut
 
-has 'plans' => (is => 'rw', isa => 'ArrayRef[Entities::Plan]');
+has 'plans' => (
+	is => 'rw',
+	isa => ArrayRef
+);
 
 =head2 customers( [\@customers] )
 
@@ -82,7 +95,10 @@ objects is provided, it will replace the current list.
 
 =cut
 
-has 'customers' => (is => 'rw', isa => 'ArrayRef[Entities::Customer]');
+has 'customers' => (
+	is => 'rw',
+	isa => ArrayRef
+);
 
 =head2 features( [\@features] )
 
@@ -92,7 +108,10 @@ objects is provided, it will replace the current list.
 
 =cut
 
-has 'features' => (is => 'rw', isa => 'ArrayRef[Entities::Feature]');
+has 'features' => (
+	is => 'rw',
+	isa => ArrayRef
+);
 
 =head1 METHODS IMPLEMENTED
 
@@ -293,7 +312,7 @@ L<http://search.cpan.org/dist/Entities/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010 Ido Perlmuter.
+Copyright 2010-2013 Ido Perlmuter.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
@@ -303,5 +322,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-__PACKAGE__->meta->make_immutable;
 1;

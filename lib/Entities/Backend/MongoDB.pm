@@ -1,10 +1,12 @@
 package Entities::Backend::MongoDB;
 
-use Moose;
-use namespace::autoclean;
-use MongoDB;
 use Carp;
 use DateTime::Format::ISO8601;
+use MongoDB;
+use Moo;
+use MooX::Types::MooseLike::Base qw/Str Int/;
+use Scalar::Util qw/blessed/;
+use namespace::autoclean;
 
 with 'Entities::Backend';
 
@@ -51,7 +53,11 @@ Returns the host name or IP of the MongoDB server.
 
 =cut
 
-has 'host' => (is => 'ro', isa => 'Str', default => 'localhost');
+has 'host' => (
+	is => 'ro',
+	isa => Str,
+	default => 'localhost'
+);
 
 =head2 port()
 
@@ -59,7 +65,11 @@ Returns the port number on the host where the MongoDB server listens.
 
 =cut
 
-has 'port' => (is => 'ro', isa => 'Int', default => 27017);
+has 'port' => (
+	is => 'ro',
+	isa => Int,
+	default => sub { 27017 }
+);
 
 =head2 db_name()
 
@@ -67,7 +77,11 @@ Returns the name of the database into which all data is saved.
 
 =cut
 
-has 'db_name' => (is => 'ro', isa => 'Str', default => 'entities');
+has 'db_name' => (
+	is => 'ro',
+	isa => Str,
+	default => 'entities'
+);
 
 =head2 db( [$db_obj] )
 
@@ -77,7 +91,10 @@ the current object.
 
 =cut
 
-has 'db' => (is => 'rw', isa => 'MongoDB::Database');
+has 'db' => (
+	is => 'rw',
+	isa => sub { croak 'db must be a MongoDB::Database object' unless blessed $_[0] && blessed $_[0] eq 'MongoDB::Database' }
+);
 
 =head2 to_hash( $obj )
 
@@ -313,7 +330,11 @@ and store it in the object.
 sub BUILD {
 	my $self = shift;
 
-	my $connection = MongoDB::Connection->new(host => $self->host, port => $self->port);	
+	my $connection = MongoDB::MongoClient->new(
+		host => $self->host,
+		port => $self->port
+	);
+
 	$self->db($connection->get_database($self->db_name));
 }
 
@@ -361,7 +382,7 @@ L<http://search.cpan.org/dist/Entities/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010 Ido Perlmuter.
+Copyright 2010-2013 Ido Perlmuter.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
@@ -371,5 +392,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-__PACKAGE__->meta->make_immutable;
 1;

@@ -1,11 +1,12 @@
 package Entities::Customer;
 
-use Moose;
-use Moose::Util::TypeConstraints;
-use MooseX::Types::DateTime;
-use MooseX::Types::Email qw/EmailAddress/;
-use namespace::autoclean;
 use Carp;
+use DateTime;
+use Moo;
+use MooX::Types::MooseLike::Base qw/Any Str ArrayRef/;
+use MooX::Types::MooseLike::Email qw/EmailAddress/;
+use Scalar::Util qw/blessed/;
+use namespace::autoclean;
 
 # ABSTRACT: An abstract entity that owns users and subscribes to plans.
 
@@ -57,7 +58,12 @@ internally.
 
 =cut
 
-has 'id' => (is => 'ro', isa => 'Any', predicate => 'has_id', writer => '_set_id');
+has 'id' => (
+	is => 'ro',
+	isa => Any,
+	predicate => 'has_id',
+	writer => '_set_id'
+);
 
 =head2 name()
 
@@ -65,7 +71,11 @@ Returns the name of the customer.
 
 =cut
 
-has 'name' => (is => 'ro', isa => 'Str', required => 1);
+has 'name' => (
+	is => 'ro',
+	isa => Str,
+	required => 1
+);
 
 =head2 email_address()
 
@@ -79,7 +89,12 @@ Changes the email address of the customer to the provided value.
 
 =cut
 
-has 'email_address' => (is => 'ro', isa => EmailAddress, required => 1, writer => 'set_email_address');
+has 'email_address' => (
+	is => 'ro',
+	isa => EmailAddress,
+	required => 1,
+	writer => 'set_email_address'
+);
 
 =head2 _plans( [\@plans] )
 
@@ -94,7 +109,11 @@ Returns a true value if the customer is subscribed to any plan.
 
 =cut
 
-has '_plans' => (is => 'rw', isa => 'ArrayRef[Str]', predicate => 'has_plans');
+has '_plans' => (
+	is => 'rw',
+	isa => ArrayRef[Str],
+	predicate => 'has_plans'
+);
 
 =head2 plans()
 
@@ -127,7 +146,11 @@ directly.
 
 =cut
 
-has '_features' => (is => 'rw', isa => 'ArrayRef[Str]', predicate => 'has_features');
+has '_features' => (
+	is => 'rw',
+	isa => ArrayRef[Str],
+	predicate => 'has_features'
+);
 
 =head2 features()
 
@@ -153,7 +176,11 @@ created.
 
 =cut
 
-has 'created' => (is => 'ro', isa => 'DateTime', default => sub { DateTime->now() });
+has 'created' => (
+	is => 'ro',
+	isa => sub { croak 'created must be a DateTime object' unless blessed $_[0] && blessed $_[0] eq 'DateTime' },
+	default => sub { DateTime->now() }
+);
 
 =head2 modified( [$dt] )
 
@@ -163,7 +190,11 @@ value of this attribute.
 
 =cut
 
-has 'modified' => (is => 'rw', isa => 'DateTime', default => sub { DateTime->now() });
+has 'modified' => (
+	is => 'rw',
+	isa => sub { croak 'modified must be a DateTime object' unless blessed $_[0] && blessed $_[0] eq 'DateTime' },
+	default => sub { DateTime->now() }
+);
 
 =head2 parent()
 
@@ -171,7 +202,11 @@ Returns the L<Entities::Backend> instance that stores this object.
 
 =cut
 
-has 'parent' => (is => 'ro', does => 'Entities::Backend', weak_ref => 1);
+has 'parent' => (
+	is => 'ro',
+	isa => sub { croak 'parent must be an Entities::Backend' unless blessed $_[0] && $_[0]->does('Entities::Backend') },
+	weak_ref => 1
+);
 
 with 'Abilities::Features';
 
@@ -420,7 +455,7 @@ L<http://search.cpan.org/dist/Entities/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010 Ido Perlmuter.
+Copyright 2010-2013 Ido Perlmuter.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published

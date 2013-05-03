@@ -1,10 +1,10 @@
 package Entities::Role;
 
-use Moose;
-use Moose::Util::TypeConstraints;
-use MooseX::Types::DateTime;
-use namespace::autoclean;
 use Carp;
+use Moo;
+use MooX::Types::MooseLike::Base qw/Any Str Bool ArrayRef/;
+use Scalar::Util qw/blessed/;
+use namespace::autoclean;
 
 # ABSTRACT: A collection of possibly related actions granted to users.
 
@@ -54,7 +54,12 @@ internally.
 
 =cut
 
-has 'id' => (is => 'ro', isa => 'Any', predicate => 'has_id', writer => '_set_id');
+has 'id' => (
+	is => 'ro',
+	isa => Any,
+	predicate => 'has_id',
+	writer => '_set_id'
+);
 
 =head2 name()
 
@@ -62,7 +67,11 @@ Returns the name of the role.
 
 =cut
 
-has 'name' => (is => 'ro', isa => 'Str', required => 1);
+has 'name' => (
+	is => 'ro',
+	isa => Str,
+	required => 1
+);
 
 =head2 description()
 
@@ -74,7 +83,11 @@ Changes the description text of the object to the provided text.
 
 =cut
 
-has 'description' => (is => 'ro', isa => 'Str', writer => 'set_description');
+has 'description' => (
+	is => 'ro',
+	isa => Str,
+	writer => 'set_description'
+);
 
 =head2 _roles( [\@roles] )
 
@@ -88,7 +101,11 @@ Returns a true value if the role inherits from any other roles.
 
 =cut
 
-has '_roles' => (is => 'rw', isa => 'ArrayRef[Str]', predicate => 'has_roles');
+has '_roles' => (
+	is => 'rw',
+	isa => ArrayRef[Str],
+	predicate => 'has_roles'
+);
 
 =head2 roles()
 
@@ -119,7 +136,11 @@ Returns a true value if the role has been granted any actions.
 
 =cut
 
-has '_actions' => (is => 'rw', isa => 'ArrayRef[Str]', predicate => 'has_actions');
+has '_actions' => (
+	is => 'rw',
+	isa => ArrayRef[Str],
+	predicate => 'has_actions'
+);
 
 =head2 actions()
 
@@ -145,7 +166,11 @@ can do every possible action, in ANY SCOPE.
 
 =cut
 
-has 'is_super' => (is => 'ro', isa => 'Bool', default => 0);
+has 'is_super' => (
+	is => 'ro',
+	isa => Bool,
+	default => 0
+);
 
 =head2 created()
 
@@ -153,7 +178,11 @@ Returns a L<DateTime> object in the time the role object has been created.
 
 =cut
 
-has 'created' => (is => 'ro', isa => 'DateTime', default => sub { DateTime->now() });
+has 'created' => (
+	is => 'ro',
+	isa => sub { croak 'created must be a DateTime object' unless blessed $_[0] && blessed $_[0] eq 'DateTime' },
+	default => sub { DateTime->now() }
+);
 
 =head2 modified( [$dt] )
 
@@ -162,7 +191,11 @@ If a DateTime object is provided, it is set as the new modified value.
 
 =cut
 
-has 'modified' => (is => 'rw', isa => 'DateTime', default => sub { DateTime->now() });
+has 'modified' => (
+	is => 'rw',
+	isa => sub { croak 'modified must be a DateTime object' unless blessed $_[0] && blessed $_[0] eq 'DateTime' },
+	default => sub { DateTime->now() }
+);
 
 =head2 parent()
 
@@ -170,7 +203,11 @@ Returns the L<Entities::Backend> instance that stores this object.
 
 =cut
 
-has 'parent' => (is => 'ro', does => 'Entities::Backend', weak_ref => 1);
+has 'parent' => (
+	is => 'ro',
+	isa => sub { croak 'parent must be an Entities::Backend' unless blessed $_[0] && $_[0]->does('Entities::Backend') },
+	weak_ref => 1
+);
 
 with 'Abilities';
 
@@ -420,7 +457,7 @@ L<http://search.cpan.org/dist/Entities/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010 Ido Perlmuter.
+Copyright 2010-2013 Ido Perlmuter.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published

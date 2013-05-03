@@ -1,6 +1,6 @@
 package Entities::Backend;
 
-use Moose::Role;
+use Moo::Role;
 use namespace::autoclean;
 
 # ABSTRACT: A role providing storage for the Entities user-management/authorization system.
@@ -153,7 +153,7 @@ L<http://search.cpan.org/dist/Entities/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010 Ido Perlmuter.
+Copyright 2010-2013 Ido Perlmuter.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published

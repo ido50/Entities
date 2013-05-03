@@ -1,6 +1,9 @@
 Revision history for Entities
 
 {{$NEXT}}
+	- Updated to reflect changes introduced in Abilities v0.3
+	- Moved from Moose to Moo
+	- Now using MongoDB::MongoClient instead of MongoDB::Connection
 
 0.2       2010-07-23 19:37:13 Asia/Jerusalem
 	- MongoDB is now a requirement

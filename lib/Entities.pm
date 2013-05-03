@@ -1,7 +1,7 @@
 package Entities;
 
-use Moose;
-use namespace::autoclean;
+our $VERSION = "0.3";
+$VERSION = eval $VERSION;
 
 use Entities::User;
 use Entities::Role;
@@ -9,8 +9,8 @@ use Entities::Action;
 use Entities::Customer;
 use Entities::Plan;
 use Entities::Feature;
-
-has 'backend' => (is => 'ro', does => 'Entities::Backend', required => 1);
+use Moo;
+use namespace::autoclean;
 
 # ABSTRACT: User management and authorization for web applications and subscription-based services.
 
@@ -149,13 +149,30 @@ Obviously, the L<Entities> system cannot do scoping and limiting for you,
 so you have to do this yourself. However, I do have plans to provide some
 simple features in upcoming releases to make these processes easier.
 
-=head1 METHODS
+=head1 ATTRIBUTES
+
+=head2 backend
+
+Holds the storage backend object. This will be an object that C<does> the
+role L<Entities::Backend>.
+
+=cut
+
+has 'backend' => (
+	is => 'ro',
+	does => 'Entities::Backend',
+	required => 1
+);
+
+=head1 CONSTRUCTOR
 
 =head2 new( backend => $backend )
 
 Creates a new instance of the Entities module. Requires a backend object
 to be used for storage (see L<Entities::Backend> for more information
 and a list of currently available backends).
+
+=head1 OBJECT METHODS
 
 =head2 new_role( name => 'somerole', [ description => 'Just some role',
 is_super => 0, roles => [], actions => [], created => $dt_obj,
@@ -164,14 +181,6 @@ modified => $other_dt_obj, parent => $entities_obj, id => 123 ] )
 Creates a new L<Entities::Role> object, stores it in the backend and
 returns it.
 
-=cut
-
-sub new_role {
-	my $self = shift;
-
-	return Entities::Role->new(@_);
-}
-
 =head2 new_user( username => 'someguy', passphrase => 's3cr3t', [ realname => 'Some Guy',
 is_super => 0, roles => [], actions => [], customer => $customer_obj, id => 123,
 emails => [], created => $dt_obj, modified => $other_dt_obj, parent => $entities_obj ] )
@@ -179,27 +188,11 @@ emails => [], created => $dt_obj, modified => $other_dt_obj, parent => $entities
 Creates a new L<Entities::User> object, stores it in the backend and
 returns it.
 
-=cut
-
-sub new_user {
-	my $self = shift;
-
-	return Entities::User->new(@_);
-}
-
 =head2 new_action( name => 'someaction', [ description => 'Just some action',
 parent => $entities_obj, id => 123 ] )
 
 Creates a new L<Entities::Action> object, stores it in the backend and
 returns it.
-
-=cut
-
-sub new_action {
-	my $self = shift;
-
-	return Entities::Action->new(@_);
-}
 
 =head2 new_plan( name => 'someplan', [ description => 'Just some plan',
 features => [], plans => [], created => $dt_obj, modified => $other_dt_obj,
@@ -208,27 +201,11 @@ parent => $entities_obj, id => 123 ] )
 Creates a new L<Entities::Plan> object, stores it in the backend and
 returns it.
 
-=cut
-
-sub new_plan {
-	my $self = shift;
-
-	return Entities::Plan->new(@_);
-}
-
 =head2 new_feature( name => 'somefeature', [ description => 'Just some feature',
 parent => $entities_obj, id => 123 ] )
 
 Creates a new L<Entities::Feature> object, stores it in the backend
 and returns it.
-
-=cut
-
-sub new_feature {
-	my $self = shift;
-
-	return Entities::Feature->new(@_);
-}
 
 =head2 new_customer( name => 'somecustomer', email_address => 'customer@customer.com',
 [ features => [], plans => [], created => $dt_obj, modified => $other_dt_obj,
@@ -239,37 +216,23 @@ and returns it.
 
 =cut
 
-sub new_customer {
-	my $self = shift;
+no strict 'refs';
+foreach my $entity (qw/role user action plan feature customer/) {
+	*{"new_$entity"} = sub {
+		my $self = shift;
 
-	return Entities::Customer->new(@_);
+		# create a new object
+		my $class = 'Entities::'.ucfirst($entity);
+		push(@_, parent => $self->backend);
+		my $obj = $class->new(@_);
+
+		# save object in storage backend
+		$self->backend->save($obj);
+
+		return $obj;
+	};
 }
-
-=head1 METHOD MODIFIERS
-
-The following list documents any method modifications performed through
-the magic of L<Moose>.
-
-=head2 around qr/^new_.+$/
-
-This method modifier is used when any of the above C<new_something> methods
-are invoked. It is used to automatically pass the Entities object to the
-newly created object (as the 'parent' attribute), and to automatically
-save the object in the backend.
-
-=cut
-
-around qr/^new_.+$/ => sub {
-	my ($orig, $self) = (shift, shift);
-
-	push(@_, parent => $self->backend);
-
-	my $obj = $self->$orig(@_);
-
-	$self->backend->save($obj);
-
-	return $obj;
-};
+use strict 'refs';
 
 =head1 SEE ALSO
 
@@ -315,7 +278,7 @@ L<http://search.cpan.org/dist/Entities/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010 Ido Perlmuter.
+Copyright 2010-2013 Ido Perlmuter.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
