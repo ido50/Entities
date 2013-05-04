@@ -1,6 +1,7 @@
 Revision history for Entities
 
 {{$NEXT}}
+	- Fixed bug causing 02-mongodb.t to fail when mongod not available
 
 0.4       2013-05-03 21:07:04 Asia/Jerusalem
 	- Small release bugfix

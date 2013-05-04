@@ -1,6 +1,6 @@
 package Entities;
 
-our $VERSION = "0.4";
+our $VERSION = "0.5";
 $VERSION = eval $VERSION;
 
 use Entities::User;

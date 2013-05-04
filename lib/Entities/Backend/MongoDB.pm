@@ -1,6 +1,6 @@
 package Entities::Backend::MongoDB;
 
-our $VERSION = "0.4";
+our $VERSION = "0.5";
 $VERSION = eval $VERSION;
 
 use Carp;
@@ -42,7 +42,7 @@ backend will automatically create the database and necessary collections.
 
 The following method are unique to this backend only.
 
-=head2 new( [host => 'localhost', port => 27017, db_name => 'entities'] )
+=head2 new( [ host => 'localhost', port => 27017, db_name => 'entities' ] )
 
 Creates a new instance of this module. Can receive the hostname of the server
 running the MongoDB daemon, the port on that host where the daemon is

@@ -13,7 +13,7 @@ SKIP: {
 	eval { $bac = Entities::Backend::MongoDB->new(db_name => 'entities_test'); };
 
 	diag("MongoDB doesn't seem to be running: $@.") if $@;
-	skip "MongoDB doesn't seem to be running.", 76 if $@;
+	skip "MongoDB doesn't seem to be running.", 62 if $@;
 
 	ok($bac, 'Got a Memory Backend object');
 
