@@ -39,7 +39,7 @@ DESCRIPTION
   ENTITIES?
     Ability-based authorization deals with six types of "entities":
 
-    *   Customers (represented by Entities::Customer
+    *   Customers (represented by Entities::Customer)
 
         A customer is an abstract entity that merely serves to unify the
         people who are actually using your app (see "users"). It can either
@@ -47,21 +47,21 @@ DESCRIPTION
         customer is the "body" that signed up for your service and possibly
         is paying for it. A customer can have 1 or more users.
 
-    *   Users (represented by Entities::User
+    *   Users (represented by Entities::User)
 
-        A user is a person that belongs to a certain company and has
+        A user is a person that belongs to a certain customer and has
         received access to your app. They are the actual entities that are
-        interacting with your application, not their parent entities (i.e.
-        customers). Users have the ability to perform actions (see later),
-        probably only within their parent entity's scope (see "SCOPING") and
-        maybe to a certain limit (see "LIMITING").
+        interacting with your application, not their parent customer
+        entities. Users have the ability to perform actions (see later),
+        probably only within their parent entity's scope and maybe to a
+        certain limit (see "SCOPING AND LIMITING").
 
     *   Plans (represented by Entities::Plan)
 
-        A plan is a group of features (see "features"), with certain limits
-        and scoping restrictions, that customers subscribe to. You are
-        probably familiar with this concept from web services you use (like
-        GitHub, Google Apps, etc.).
+        A plan is a group of features (see below), with certain limits and
+        scoping restrictions, that customers subscribe to. You are probably
+        familiar with this concept from web services you use (like GitHub,
+        Google Apps, etc.).
 
         A customer can subscribe to one or more plans (plans do not have to
         be related in any way), so that users of that customer can use the
@@ -78,7 +78,7 @@ DESCRIPTION
         In other words, features are as they're named: the features of your
         app. It's your decision who gets to use them.
 
-    *   Actions (represented by Entities::Actions)
+    *   Actions (represented by Entities::Action)
 
         Actions are the core of 'ability-based authorization'. They define
         the actual activities that users can perform inside your app. For
@@ -87,7 +87,7 @@ DESCRIPTION
         'creating new users'.
 
         Actions, therefore, are units of "work" you define in your code.
-        Users will be able to perform such unit of work only if they are
+        Users will be able to perform such a unit of work only if they are
         granted with the 'ability' to perform the action the defines it, and
         only if this action is within the defined 'scope' and 'limit' of the
         parent customer. A certain ability can be bestowed upon a user
@@ -99,8 +99,9 @@ DESCRIPTION
         Figuratively speaking, they are 'masks' that users can wear. A role
         is nothing but a group of actions. When a user is assigned a certain
         role, they consume all the actions defined in that role, and
-        therefore the user is able to perform it. You will most likely find
-        yourself creating roles such as 'admins', 'members', 'guests', etc.
+        therefore the user is able to perform them. You will most likely
+        find yourself creating roles such as 'admins', 'members', 'guests',
+        etc.
 
         Roles are self-inheriting, i.e. a role can inherit the actions of
         another role.
@@ -131,12 +132,18 @@ DESCRIPTION
     some simple features in upcoming releases to make these processes
     easier.
 
-METHODS
+ATTRIBUTES
+  backend
+    Holds the storage backend object. This will be an object that "does" the
+    role Entities::Backend.
+
+CONSTRUCTOR
   new( backend => $backend )
     Creates a new instance of the Entities module. Requires a backend object
     to be used for storage (see Entities::Backend for more information and a
     list of currently available backends).
 
+OBJECT METHODS
   new_role( name => 'somerole', [ description => 'Just some role',
 is_super => 0, roles => [], actions => [], created => $dt_obj,
 modified => $other_dt_obj, parent => $entities_obj, id => 123 ] )
@@ -170,16 +177,6 @@ parent => $entities_obj, id => 123 ] )
 parent => $entities_obj, id => 123 ] )
     Creates a new Entities::Customer object, stores it in the backend and
     returns it.
-
-METHOD MODIFIERS
-    The following list documents any method modifications performed through
-    the magic of Moose.
-
-  around qr/^new_.+$/
-    This method modifier is used when any of the above "new_something"
-    methods are invoked. It is used to automatically pass the Entities
-    object to the newly created object (as the 'parent' attribute), and to
-    automatically save the object in the backend.
 
 SEE ALSO
     Abilities, Abilities::Features, Catalyst::Authentication::Abilities.
@@ -218,7 +215,7 @@ SUPPORT
         <http://search.cpan.org/dist/Entities/>
 
 LICENSE AND COPYRIGHT
-    Copyright 2010 Ido Perlmuter.
+    Copyright 2010-2013 Ido Perlmuter.
 
     This program is free software; you can redistribute it and/or modify it
     under the terms of either: the GNU General Public License as published
